@@ -40,10 +40,11 @@ import org.hibernate.shards.util.Lists;
 
 /**
  * @author Tomislav Nad
+ * @author Aleksander Dukhno
  */
 public class ShardedTransactionImpl implements ShardedTransaction {
 
-	private final Logger log = Logger.getLogger( getClass() );
+	private static final Logger LOG = Logger.getLogger( ShardedTransactionImpl.class );
 
 	private final List<Transaction> transactions;
 
@@ -70,7 +71,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 
 	@Override
 	public void setupTransaction(final Session session) {
-		log.debug( "Setting up transaction" );
+		LOG.debug( "Setting up transaction" );
 		transactions.add( session.getTransaction() );
 		if ( begun ) {
 			session.beginTransaction();
@@ -94,7 +95,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 				t.begin();
 			}
 			catch (HibernateException he) {
-				log.warn( "exception starting underlying transaction", he );
+				LOG.warn( "exception starting underlying transaction", he );
 				beginException = true;
 			}
 		}
@@ -120,9 +121,9 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 	@Override
 	public void commit() throws HibernateException {
 		if ( !begun ) {
-			throw new TransactionException( "Transaction not succesfully started" );
+			throw new TransactionException( "Transaction not successfully started" );
 		}
-		log.debug( "Starting transaction commit" );
+		LOG.debug( "Starting transaction commit" );
 		beforeTransactionCompletion();
 		boolean commitException = false;
 		HibernateException firstCommitException = null;
@@ -131,7 +132,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 				t.commit();
 			}
 			catch (HibernateException he) {
-				log.warn( "exception commiting underlying transaction", he );
+				LOG.warn( "exception committing underlying transaction", he );
 				commitException = true;
 				// we're only going to rethrow the first commit exception we receive
 				if ( firstCommitException == null ) {
@@ -163,7 +164,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 				t.rollback();
 			}
 			catch (HibernateException he) {
-				log.warn( "exception rolling back underlying transaction", he );
+				LOG.warn( "exception rolling back underlying transaction", he );
 				rollbackException = true;
 				if ( firstRollbackException == null ) {
 					firstRollbackException = he;
@@ -189,7 +190,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 
 	@Override
 	public boolean isActive() throws HibernateException {
-		return begun && !(rolledBack || committed || commitFailed);
+		return begun && !(rolledBack || committed);
 	}
 
 	@Override
@@ -219,21 +220,21 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 					sync.beforeCompletion();
 				}
 				catch (Throwable t) {
-					log.warn( "exception calling user Synchronization", t );
+					LOG.warn( "exception calling user Synchronization", t );
 				}
 			}
 		}
 	}
 
 	private void afterTransactionCompletion(final int status) {
-		begun = false;
+		begun = Status.STATUS_COMMITTED != status;
 		if ( synchronizations != null ) {
 			for ( Synchronization sync : synchronizations ) {
 				try {
 					sync.afterCompletion( status );
 				}
 				catch (Throwable t) {
-					log.warn( "exception calling user Synchronization", t );
+					LOG.warn( "exception calling user Synchronization", t );
 				}
 			}
 		}
@@ -257,6 +258,6 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 
 	@Override
 	public int getTimeout() {
-		return 0;
+		return timeoutSet ? timeout : 0;
 	}
 }

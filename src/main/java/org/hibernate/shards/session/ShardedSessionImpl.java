@@ -99,7 +99,7 @@ import org.hibernate.type.Type;
  * Concrete implementation of a ShardedSession, and also the central component of
  * Hibernate Shards' internal implementation. This class exposes two interfaces;
  * ShardedSession itself, to the application, and ShardedSessionImplementor, to
- * other components of Hibernate Shards. This class is not threadsafe.
+ * other components of Hibernate Shards. This class is not thread-safe.
  *
  * @author maxr@google.com (Max Ross)
  *         Tomislav Nad
@@ -133,7 +133,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 	private int nextCriteriaId = 0;
 	private int nextQueryId = 0;
 
-	private final Logger log = Logger.getLogger( getClass() );
+	private static final Logger LOG = Logger.getLogger( ShardedSessionImpl.class );
 
 	/**
 	 * Constructor used for openSession(...) processing.
@@ -150,7 +150,10 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 			final boolean checkAllAssociatedObjectsForDifferentShards) {
 
 		this(
-				null, shardedSessionFactory, shardStrategy, classesWithoutTopLevelSaveSupport,
+				null,
+				shardedSessionFactory,
+				shardStrategy,
+				classesWithoutTopLevelSaveSupport,
 				checkAllAssociatedObjectsForDifferentShards
 		);
 	}
@@ -383,23 +386,6 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		return null;
 	}
 
-//    @Override
-//    public EntityMode getEntityMode() {
-//        // assume they all have the same EntityMode
-//        Session someSession = getSomeSession();
-//        if (someSession == null) {
-//            someSession = shards.get(0).establishSession();
-//        }
-//        return someSession.getEntityMode();
-//    }
-
-	/**
-	 * Unsupported.  This is a scope decision, not a technical decision.
-	 */
-//    @Override
-//    public Session getSession(final EntityMode entityMode) {
-//        throw new UnsupportedOperationException();
-//    }
 	@Override
 	public void flush() throws HibernateException {
 		for ( final Shard shard : shards ) {
@@ -445,14 +431,6 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		return shardedSessionFactory;
 	}
 
-	/**
-	 * @deprecated
-	 */
-//    @Override
-//    @Deprecated
-//    public Connection connection() throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
 	@Override
 	public Connection close() throws HibernateException {
 		List<Throwable> thrown = null;
@@ -739,7 +717,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		}
 		Preconditions.checkNotNull( shardId );
 		setCurrentSubgraphShardId( shardId );
-		log.debug( String.format( "Saving object of type %s to shard %s", object.getClass(), shardId ) );
+		LOG.debug( String.format( "Saving object of type %s to shard %s", object.getClass(), shardId ) );
 		return shardIdsToShards.get( shardId ).establishSession().save( entityName, object );
 	}
 
@@ -747,16 +725,17 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		if ( lockedShardId != null ) {
 			return lockedShardId;
 		}
-		ShardId shardId;	/*
-	 * Someone is trying to save this object, and that's wonderful, but if
-     * this object references or is referenced by any other objects that have already been
-     * associated with a session it's important that this object end up
-     * associated with the same session.  In order to make sure that happens,
-     * we're going to look at the metadata for this object and see what
-     * references we have, and then use those to determine the proper shard.
-     * If we can't find any references we'll leave it up to the shard selection
-     * strategy.
-     */
+		ShardId shardId;
+		/*
+		 * Someone is trying to save this object, and that's wonderful, but if
+		 * this object references or is referenced by any other objects that have already been
+		 * associated with a session it's important that this object end up
+		 * associated with the same session.  In order to make sure that happens,
+		 * we're going to look at the metadata for this object and see what
+		 * references we have, and then use those to determine the proper shard.
+		 * If we can't find any references we'll leave it up to the shard selection
+		 * strategy.
+		 */
 		shardId = getShardIdOfRelatedObject( obj );
 		if ( shardId == null ) {
 			checkForUnsupportedTopLevelSave( obj.getClass() );
@@ -766,7 +745,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		if ( lockedShard ) {
 			lockedShardId = shardId;
 		}
-		log.debug(
+		LOG.debug(
 				String.format(
 						"Selected shard %d for object of type %s",
 						shardId.getId(),
@@ -790,7 +769,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 					"Attempt to save object of type %s as a top-level object.",
 					clazz.getName()
 			);
-			log.error( msg );
+			LOG.error( msg );
 			throw new HibernateException( msg );
 		}
 	}
@@ -866,7 +845,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 						associatedObject.getClass().getName(),
 						localShardId.getId()
 				);
-				log.error( msg );
+				LOG.error( msg );
 				throw new CrossShardAssociationException( msg );
 			}
 		}
@@ -1046,8 +1025,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 	public Object merge(final String entityName, final Object object) throws HibernateException {
 		final Serializable id = extractId( object );
 		final List<ShardId> shardIds = selectShardIdsFromShardResolutionStrategyData(
-				new
-						ShardResolutionStrategyDataImpl( object.getClass(), id )
+				new ShardResolutionStrategyDataImpl( object.getClass(), id )
 		);
 
 		if ( shardIds.size() == 1 ) {
@@ -1086,7 +1064,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		}
 		Preconditions.checkNotNull( shardId );
 		setCurrentSubgraphShardId( shardId );
-		log.debug( String.format( "Persisting object of type %s to shard %s", object.getClass(), shardId ) );
+		LOG.debug( String.format( "Persisting object of type %s to shard %s", object.getClass(), shardId ) );
 		shardIdsToShards.get( shardId ).establishSession().persist( entityName, object );
 	}
 
@@ -1246,7 +1224,8 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 	@Override
 	public Transaction getTransaction() {
 		errorIfClosed();
-		if ( transaction == null ) {
+		if ( transaction == null
+				|| !transaction.isActive() ) {
 			transaction = new ShardedTransactionImpl( this );
 		}
 		return transaction;
@@ -1447,15 +1426,6 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		// we do not allow application-supplied connections, so we can always return null
 		return null;
 	}
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public void reconnect() throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
 
 	/**
 	 * Unsupported.  This is a technical decision.
@@ -1505,213 +1475,6 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		}
 		return someSession.getLobHelper();
 	}
-
-	/**
-	 * All methods below fulfill the org.hibernate.Session interface.
-	 * These methods are all deprecated, and since we don't really have any
-	 * legacy Hibernate code at Google so we're simply not going to support them.
-	 */
-
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Object saveOrUpdateCopy(final Object object) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Object saveOrUpdateCopy(final Object object, final Serializable id) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Object saveOrUpdateCopy(final String entityName, final Object object) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Object saveOrUpdateCopy(final String entityName, final Object object, final Serializable id)
-//            throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public List find(final String query) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public List find(final String query, final Object value, final Type type) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public List find(final String query, final Object[] values, final Type[] types) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Iterator iterate(final String query) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Iterator iterate(final String query, final Object value, final Type type) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Iterator iterate(final String query, final Object[] values, final Type[] types) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Collection filter(final Object collection, final String filter) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Collection filter(final Object collection, final String filter, final Object value, final Type type)
-//            throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Collection filter(final Object collection, final String filter, final Object[] values, final Type[] types)
-//            throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public int delete(final String query) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public int delete(final String query, final Object value, final Type type) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public int delete(final String query, final Object[] values, final Type[] types) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Query createSQLQuery(final String sql, final String returnAlias, final Class returnClass) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public Query createSQLQuery(final String sql, final String[] returnAliases, final Class[] returnClasses) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public void save(final Object object, final Serializable id) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public void save(final String entityName, final Object object, final Serializable id) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public void update(final Object object, final Serializable id) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    /**
-//     * @deprecated
-//     */
-//    @Override
-//    @Deprecated
-//    public void update(final String entityName, final Object object, final Serializable id) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
 
 	void errorIfClosed() {
 		if ( closed ) {
@@ -1829,12 +1592,12 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 	protected void finalize() throws Throwable {
 		try {
 			if ( !closed ) {
-				log.warn( "ShardedSessionImpl is being garbage collected but it was never properly closed." );
+				LOG.warn( "ShardedSessionImpl is being garbage collected but it was never properly closed." );
 				try {
 					close();
 				}
 				catch (Exception e) {
-					log.warn( "Caught exception trying to close.", e );
+					LOG.warn( "Caught exception trying to close.", e );
 				}
 			}
 		}

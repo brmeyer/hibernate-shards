@@ -31,8 +31,8 @@ public class SetupTransactionOpenSessionEvent implements OpenSessionEvent {
 
 	private final ShardedTransaction shardedTransaction;
 
-	public SetupTransactionOpenSessionEvent(ShardedTransaction shardedTtransaction) {
-		this.shardedTransaction = shardedTtransaction;
+	public SetupTransactionOpenSessionEvent(ShardedTransaction shardedTransaction) {
+		this.shardedTransaction = shardedTransaction;
 	}
 
 	public void onOpenSession(Session session) {
