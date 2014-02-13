@@ -83,11 +83,11 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 
 	@Override
 	public void begin() throws HibernateException {
-		if ( begun ) {
-			return;
-		}
 		if ( commitFailed ) {
 			throw new TransactionException( "cannot re-start transaction after failed commit" );
+		}
+		if ( begun ) {
+			return;
 		}
 		boolean beginException = false;
 		for ( Transaction t : transactions ) {
@@ -147,6 +147,20 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 		}
 		afterTransactionCompletion( Status.STATUS_COMMITTED );
 		committed = true;
+	}
+
+	private void afterTransactionCompletion(final int status) {
+		begun = Status.STATUS_COMMITTED != status;
+		if ( synchronizations != null ) {
+			for ( Synchronization sync : synchronizations ) {
+				try {
+					sync.afterCompletion( status );
+				}
+				catch (Throwable t) {
+					LOG.warn( "exception calling user Synchronization", t );
+				}
+			}
+		}
 	}
 
 	@Override
@@ -218,20 +232,6 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 			for ( Synchronization sync : synchronizations ) {
 				try {
 					sync.beforeCompletion();
-				}
-				catch (Throwable t) {
-					LOG.warn( "exception calling user Synchronization", t );
-				}
-			}
-		}
-	}
-
-	private void afterTransactionCompletion(final int status) {
-		begun = Status.STATUS_COMMITTED != status;
-		if ( synchronizations != null ) {
-			for ( Synchronization sync : synchronizations ) {
-				try {
-					sync.afterCompletion( status );
 				}
 				catch (Throwable t) {
 					LOG.warn( "exception calling user Synchronization", t );
