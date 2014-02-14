@@ -37,6 +37,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.ShardedConfiguration;
 import org.hibernate.shards.cfg.ConfigurationToShardConfigurationAdapter;
@@ -130,6 +131,10 @@ public abstract class BaseShardingIntegrationTestCase {
 
 	protected ShardedSession openSession() {
 		return sf.openSession();
+	}
+
+	protected SessionImplementor openHibernateSession() {
+		return (SessionImplementor)sf.getSessionFactories().get( 0 ).openSession();
 	}
 
 	protected Map<Integer, Integer> buildVirtualShardToShardMap() {

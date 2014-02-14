@@ -18,13 +18,23 @@
 
 package org.hibernate.shards;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.shards.criteria.CriteriaEvent;
 import org.hibernate.shards.criteria.CriteriaEventDefaultMock;
 import org.hibernate.shards.criteria.CriteriaFactory;
@@ -36,6 +46,8 @@ import org.hibernate.shards.defaultmock.InterceptorDefaultMock;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
 import org.hibernate.shards.defaultmock.SessionDefaultMock;
 import org.hibernate.shards.defaultmock.SessionFactoryDefaultMock;
+import org.hibernate.shards.integration.BaseShardingIntegrationTestCase;
+import org.hibernate.shards.integration.Permutation;
 import org.hibernate.shards.query.QueryEvent;
 import org.hibernate.shards.query.QueryEventDefaultMock;
 import org.hibernate.shards.query.QueryFactory;
@@ -49,8 +61,15 @@ import org.hibernate.shards.util.Sets;
 /**
  * @author maxr@google.com (Max Ross)
  */
-public class ShardImplTest extends TestCase {
+@RunWith(Parameterized.class)
+//todo BaseShardingIntegrationTestCase temporary
+public class ShardImplTest extends BaseShardingIntegrationTestCase {
 
+	public ShardImplTest( Permutation permutation) {
+		super(permutation);
+	}
+
+	@Test
 	public void testAddOpenSessionEvent() {
 		ShardImpl shard = new ShardImpl( new ShardId( 1 ), new SessionFactoryDefaultMock() );
 		try {
@@ -75,6 +94,7 @@ public class ShardImplTest extends TestCase {
 		assertSame( anotherOse, shard.getOpenSessionEvents().get( 1 ) );
 	}
 
+	@Test
 	public void testAddCriteriaEvent() {
 		ShardImpl shard = new ShardImpl( new ShardId( 1 ), new SessionFactoryDefaultMock() );
 		try {
@@ -131,6 +151,7 @@ public class ShardImplTest extends TestCase {
 		assertSame( yetAnotherCe, shard.getCriteriaEventMap().get( anotherCriteriaId ).get( 0 ) );
 	}
 
+	@Test
 	public void testEstablishSessionNoEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -140,16 +161,16 @@ public class ShardImplTest extends TestCase {
 		assertEquals( 1, sf.numOpenSessionCalls );
 	}
 
+	@Test
 	public void testEstablishSessionNoEventsWithInterceptor() {
-		MySessionFactory sf = new MySessionFactory();
 		Interceptor interceptor = new InterceptorDefaultMock();
-		ShardImpl shardImpl = new ShardImpl( Sets.newHashSet( new ShardId( 1 ) ), sf, interceptor );
-		shardImpl.establishSession();
-		assertEquals( 1, sf.numOpenSessionWithInterceptorCalls );
-		shardImpl.establishSession();
-		assertEquals( 1, sf.numOpenSessionWithInterceptorCalls );
+		ShardImpl shardImpl = new ShardImpl( Sets.newHashSet( new ShardId( 1 ) ), (SessionFactoryImplementor)sf, interceptor );
+		Session s1 = shardImpl.establishSession();
+		Session s2 = shardImpl.establishSession();
+		assertEquals( s1, s2 );
 	}
 
+	@Test
 	public void testEstablishSessionWithEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -169,6 +190,7 @@ public class ShardImplTest extends TestCase {
 		assertTrue( shardImpl.getOpenSessionEvents().isEmpty() );
 	}
 
+	@Test
 	public void testEstablishCriteriaNoEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -189,6 +211,7 @@ public class ShardImplTest extends TestCase {
 		assertSame( crit, shardImpl.getCriteriaMap().get( critId ) );
 	}
 
+	@Test
 	public void testEstablishCriteriaWithEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -219,6 +242,7 @@ public class ShardImplTest extends TestCase {
 		assertTrue( shardImpl.getCriteriaEventMap().get( critId ).isEmpty() );
 	}
 
+	@Test
 	public void testEstablishMultipleCriteria() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -269,6 +293,7 @@ public class ShardImplTest extends TestCase {
 		assertTrue( shardImpl.getCriteriaEventMap().get( critId1 ).isEmpty() );
 	}
 
+	@Test
 	public void testAddQueryEvent() throws Exception {
 		ShardImpl shard = new ShardImpl( new ShardId( 1 ), new SessionFactoryDefaultMock() );
 		try {
@@ -325,6 +350,7 @@ public class ShardImplTest extends TestCase {
 		assertSame( yetAnotherQe, shard.getQueryEventMap().get( anotherQueryId ).get( 0 ) );
 	}
 
+	@Test
 	public void testEstablishQueryNoEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -345,6 +371,7 @@ public class ShardImplTest extends TestCase {
 		assertSame( query, shardImpl.getQueryMap().get( critId ) );
 	}
 
+	@Test
 	public void testEstablishQueryWithEvents() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -375,6 +402,7 @@ public class ShardImplTest extends TestCase {
 		assertTrue( shardImpl.getQueryEventMap().get( queryId ).isEmpty() );
 	}
 
+	@Test
 	public void testEstablishMultipleQuery() {
 		MySessionFactory sf = new MySessionFactory();
 		ShardImpl shardImpl = new ShardImpl( new ShardId( 1 ), sf );
@@ -425,6 +453,12 @@ public class ShardImplTest extends TestCase {
 		assertTrue( shardImpl.getQueryEventMap().get( queryId1 ).isEmpty() );
 	}
 
+	//todo temporary
+	@Parameterized.Parameters()
+	public static Iterable<Object[]> data() {
+		return PermutationHelper.data();
+	}
+
 	private static final class MyOpenSessionEvent extends OpenSessionEventDefaultMock {
 		private int numOnOpenSessionCalls = 0;
 
@@ -443,13 +477,6 @@ public class ShardImplTest extends TestCase {
 			numOpenSessionCalls++;
 			return new SessionDefaultMock();
 		}
-
-//    @Override
-//    public org.hibernate.Session openSession(Interceptor interceptor)
-//        throws HibernateException {
-//      numOpenSessionWithInterceptorCalls++;
-//      return new SessionDefaultMock();
-//    }
 	}
 
 	private static final class MyShardedCriteria extends ShardedCriteriaDefaultMock {
