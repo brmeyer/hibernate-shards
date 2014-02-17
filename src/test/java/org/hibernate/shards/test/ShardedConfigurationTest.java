@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.Assert;
 
 /**
- * @author Maulik Shah
+ * @author Aleksander Dukhno
  */
 public class ShardedConfigurationTest extends BaseShardFunctionalTestCase {
 

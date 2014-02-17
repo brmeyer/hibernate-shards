@@ -1,10 +1,7 @@
 package org.hibernate.shards.test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.jboss.logging.Logger;
 
 import org.hibernate.Interceptor;
 import org.hibernate.cfg.Configuration;
@@ -31,7 +28,6 @@ import org.hibernate.testing.junit4.BaseUnitTestCase;
  * @author Aleksander Dukhno
  */
 public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
-	protected static final Logger logger = Logger.getLogger( BaseShardFunctionalTestCase.class );
 
 	private ShardedSessionFactoryImplementor ssf;
 	private ShardedSession session;
@@ -53,8 +49,6 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 
 	@BeforeClassOnce
 	protected void buildShardedSessionFactory() {
-		File file = new File( "src/test/resources/shard0.hibernate.cfg.xml" );
-		logger.info( file.getAbsoluteFile() );
 		Configuration prototypeConfig = new Configuration().configure( "hibernate0.cfg.xml" );
 		List<ShardConfiguration> shardConfigs = new ArrayList<ShardConfiguration>();
 		String[] configurationFiles = getConfigurationFiles();
