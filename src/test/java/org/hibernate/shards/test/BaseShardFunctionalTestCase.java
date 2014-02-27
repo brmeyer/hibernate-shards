@@ -21,6 +21,8 @@ import org.hibernate.shards.strategy.resolution.AllShardsShardResolutionStrategy
 import org.hibernate.shards.strategy.resolution.ShardResolutionStrategy;
 import org.hibernate.shards.strategy.selection.RoundRobinShardSelectionStrategy;
 import org.hibernate.shards.strategy.selection.ShardSelectionStrategy;
+
+import org.hibernate.testing.AfterClassOnce;
 import org.hibernate.testing.BeforeClassOnce;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 
@@ -63,6 +65,17 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 		);
 		ssf = (ShardedSessionFactoryImplementor) shardedConfig.buildShardedSessionFactory();
 
+	}
+
+	@AfterClassOnce
+	public void endTesting() {
+		if ( session != null
+				&& session.isOpen() ) {
+			session.close();
+		}
+		if ( !ssf.isClosed() ) {
+			ssf.close();
+		}
 	}
 
 	protected ShardStrategyFactory buildShardStrategyFactory() {
