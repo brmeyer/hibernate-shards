@@ -150,6 +150,7 @@ public class ShardedTransactionImpl implements ShardedTransaction {
 	}
 
 	private void afterTransactionCompletion(final int status) {
+		//TODO see SetupTransactionOpenSessionEvent. Should it begin transaction on open new session
 		begun = Status.STATUS_COMMITTED != status;
 		if ( synchronizations != null ) {
 			for ( Synchronization sync : synchronizations ) {
