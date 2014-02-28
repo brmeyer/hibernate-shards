@@ -21,6 +21,7 @@ package org.hibernate.shards.integration;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -61,7 +62,6 @@ import org.hibernate.shards.strategy.selection.RoundRobinShardSelectionStrategy;
 import org.hibernate.shards.strategy.selection.ShardSelectionStrategy;
 import org.hibernate.shards.util.DatabaseUtils;
 import org.hibernate.shards.util.Lists;
-import org.hibernate.shards.util.Maps;
 
 /**
  * Base class for all sharding integration tests.
@@ -138,7 +138,7 @@ public abstract class BaseShardingIntegrationTestCase {
 	}
 
 	protected Map<Integer, Integer> buildVirtualShardToShardMap() {
-		final Map<Integer, Integer> virtualShardToShardMap = Maps.newHashMap();
+		final Map<Integer, Integer> virtualShardToShardMap = new HashMap<Integer, Integer>();
 		if ( isVirtualShardingEnabled() ) {
 			for ( int i = 0; i < getNumShards(); ++i ) {
 				virtualShardToShardMap.put( i, i % getNumDatabases() );
