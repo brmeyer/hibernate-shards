@@ -809,13 +809,6 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		return getAnyFactory().getFetchProfile( name );
 	}
 
-//    @Override
-//    public SessionFactoryObserver getFactoryObserver() {
-//        // assumption is that all session factories are configured the same way,
-//        // so it doesn't matter which session factory answers this question
-//        return getAnyFactory().getFactoryObserver();
-//    }
-
 	//todo impl these methods
 
 	@Override
@@ -825,7 +818,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 
 	@Override
 	public SessionBuilderImplementor withOptions() {
-		throw new UnsupportedOperationException();
+		return getAnyFactory().withOptions();
 	}
 
 	@Override
