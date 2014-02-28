@@ -229,5 +229,10 @@ public class ShardedConfigurationTest {
 		public String getHibernateDialect() {
 			return dialect;
 		}
+
+		@Override
+		public boolean getCheckAllAssociatedObjectInShards() {
+			return false;
+		}
 	}
 }

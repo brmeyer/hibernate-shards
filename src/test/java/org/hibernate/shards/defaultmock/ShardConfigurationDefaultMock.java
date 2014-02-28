@@ -61,5 +61,10 @@ public class ShardConfigurationDefaultMock implements ShardConfiguration {
 	public String getHibernateDialect() {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public boolean getCheckAllAssociatedObjectInShards() {
+		return false;
+	}
 }
 

@@ -26,6 +26,7 @@ import org.hibernate.cfg.Environment;
  * @author maxr@google.com (Max Ross)
  * @see Environment
  */
+@Deprecated
 public final class ShardedEnvironment {
 
 	/**

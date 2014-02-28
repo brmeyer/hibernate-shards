@@ -25,6 +25,7 @@ import org.hibernate.cfg.Environment;
  *
  * @author maxr@google.com (Max Ross)
  */
+@Deprecated
 public class ConfigurationToShardConfigurationAdapter implements ShardConfiguration {
 
 	private final Configuration config;
@@ -69,5 +70,10 @@ public class ConfigurationToShardConfigurationAdapter implements ShardConfigurat
 	@Override
 	public String getHibernateDialect() {
 		return config.getProperty( Environment.DIALECT );
+	}
+
+	@Override
+	public boolean getCheckAllAssociatedObjectInShards() {
+		return false;
 	}
 }

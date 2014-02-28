@@ -87,6 +87,7 @@ public class ShardedConfiguration {
 	 * @param shardConfigs Shard-specific configuration data for each shard.
 	 * @param shardStrategyFactory factory that knows how to create the right type of shard strategy
 	 */
+	@Deprecated
 	public ShardedConfiguration(
 			final Configuration prototypeConfiguration,
 			final List<ShardConfiguration> shardConfigs,
@@ -110,6 +111,7 @@ public class ShardedConfiguration {
 	 * @param shardStrategyFactory factory that knows how to create the right kind of shard strategy
 	 * @param virtualShardToShardMap A map that maps virtual shard ids to real
 	 */
+	@Deprecated
 	public ShardedConfiguration(
 			final Configuration prototypeConfiguration,
 			final List<ShardConfiguration> shardConfigs,
@@ -168,6 +170,7 @@ public class ShardedConfiguration {
 	 * @return A ShardedSessionFactory built from the prototype config and
 	 * the shard-specific configs passed into the constructor.
 	 */
+	@Deprecated
 	public ShardedSessionFactory buildShardedSessionFactory() {
 		final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactories = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
 		// since all configs get their mappings from the prototype config, and we
@@ -218,7 +221,7 @@ public class ShardedConfiguration {
 	 * @return the Set of mapped classes that don't support top level saves
 	 */
 	@SuppressWarnings("unchecked")
-	private Set<Class<?>> determineClassesWithoutTopLevelSaveSupport(final Configuration prototypeConfig) {
+	public static Set<Class<?>> determineClassesWithoutTopLevelSaveSupport(final Configuration prototypeConfig) {
 		final Set<Class<?>> classesWithoutTopLevelSaveSupport = new HashSet<Class<?>>();
 		for ( final Iterator<PersistentClass> pcIter = prototypeConfig.getClassMappings(); pcIter.hasNext(); ) {
 			final PersistentClass pc = pcIter.next();
@@ -239,7 +242,7 @@ public class ShardedConfiguration {
 	 * definitely can't be saved as top-level objects (not part of a cascade and
 	 * no properties from which the shard can be inferred)
 	 */
-	boolean doesNotSupportTopLevelSave(final Property property) {
+	public static boolean doesNotSupportTopLevelSave(final Property property) {
 		return property.getValue() != null &&
 				OneToOne.class.isAssignableFrom( property.getValue().getClass() );
 	}
@@ -249,6 +252,7 @@ public class ShardedConfiguration {
 	 * interface and sets them as the values of the corresponding properties
 	 * in the prototype config.
 	 */
+	@Deprecated
 	void populatePrototypeWithVariableProperties(final ShardConfiguration config) {
 		safeSet( prototypeConfiguration, Environment.USER, config.getShardUser() );
 		safeSet( prototypeConfiguration, Environment.PASS, config.getShardPassword() );
@@ -265,6 +269,7 @@ public class ShardedConfiguration {
 	 * Set the key to the given value on the given config, but only if the
 	 * value is not null.
 	 */
+	@Deprecated
 	static void safeSet(final Configuration config, final String key, final String value) {
 		if ( value != null ) {
 			config.setProperty( key, value );
@@ -274,6 +279,7 @@ public class ShardedConfiguration {
 	/**
 	 * Helper function that creates an actual SessionFactory.
 	 */
+	@Deprecated
 	private SessionFactoryImplementor buildSessionFactory() {
 		return (SessionFactoryImplementor) prototypeConfiguration.buildSessionFactory();
 	}

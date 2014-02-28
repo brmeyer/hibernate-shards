@@ -20,8 +20,10 @@ package org.hibernate.shards.session;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -74,6 +76,7 @@ import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hibernate.shards.ShardId;
+import org.hibernate.shards.cfg.ShardConfiguration;
 import org.hibernate.shards.engine.ShardedSessionFactoryImplementor;
 import org.hibernate.shards.id.GeneratorRequiringControlSessionProvider;
 import org.hibernate.shards.strategy.ShardStrategy;
@@ -127,6 +130,69 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	// our lovely logger
 	private static final Logger LOG = Logger.getLogger( ShardedSessionFactoryImpl.class );
 
+	public ShardedSessionFactoryImpl(
+			final List<ShardConfiguration> shards,
+			final ShardStrategyFactory shardStrategyFactory,
+			final Set<Class<?>> classesWithoutTopLevelSaveSupport,
+			final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap) {
+		if( shards == null
+				|| shards.isEmpty() ) {
+			throw new IllegalStateException( "Shards can't be null or empty" );
+		}
+		if( sessionFactoryShardIdMap == null
+				|| sessionFactoryShardIdMap.isEmpty() ) {
+			throw new IllegalStateException( "Sharded Session Factory can't create without session factories" );
+		}
+		this.sessionFactoryShardIdMap = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
+		this.fullSessionFactoryShardIdMap = sessionFactoryShardIdMap;
+		this.sessionFactories = new ArrayList<SessionFactoryImplementor>( sessionFactoryShardIdMap.keySet() );
+		this.classesWithoutTopLevelSaveSupport = classesWithoutTopLevelSaveSupport;
+		final List<ShardId> shardIds = new ArrayList<ShardId>( shards.size() );
+		boolean checkAllAssociatedObject = true;
+		for( ShardConfiguration shardConfiguration : shards ) {
+			shardIds.add( new ShardId( shardConfiguration.getShardId() ) );
+			checkAllAssociatedObject &= shardConfiguration.getCheckAllAssociatedObjectInShards();
+		}
+		this.checkAllAssociatedObjectsForDifferentShards = checkAllAssociatedObject;
+		final Set<ShardId> uniqueShardIds = new HashSet<ShardId>();
+		SessionFactoryImplementor controlSessionFactoryToSet = null;
+		for ( final Map.Entry<SessionFactoryImplementor, Set<ShardId>> entry : sessionFactoryShardIdMap.entrySet() ) {
+			final SessionFactoryImplementor implementor = entry.getKey();
+			Preconditions.checkNotNull( implementor );
+			final Set<ShardId> shardIdSet = entry.getValue();
+			Preconditions.checkNotNull( shardIdSet );
+			Preconditions.checkArgument( !shardIdSet.isEmpty() );
+			for ( final ShardId shardId : shardIdSet ) {
+				// TODO(tomislav): we should change it so we specify control shard in configuration
+				if ( shardId.getId() == CONTROL_SHARD_ID ) {
+					controlSessionFactoryToSet = implementor;
+				}
+				if ( !uniqueShardIds.add( shardId ) ) {
+					final String msg = String.format(
+							"Cannot have more than one shard with shard id %d.",
+							shardId.getId()
+					);
+					LOG.error( msg );
+					throw new HibernateException( msg );
+				}
+				if ( shardIds.contains( shardId ) ) {
+					if ( !this.sessionFactoryShardIdMap.containsKey( implementor ) ) {
+						this.sessionFactoryShardIdMap.put( implementor, Sets.<ShardId>newHashSet() );
+					}
+					this.sessionFactoryShardIdMap.get( implementor ).add( shardId );
+				}
+			}
+		}
+		// make sure someone didn't associate a session factory with a shard id
+		// that isn't in the full list of shards
+		for ( ShardId shardId : shardIds ) {
+			Preconditions.checkState( uniqueShardIds.contains( shardId ) );
+		}
+		this.shardStrategy = shardStrategyFactory.newShardStrategy( shardIds );
+		controlSessionFactory = controlSessionFactoryToSet;
+		setupIdGenerators();
+	}
+
 	/**
 	 * Constructs a ShardedSessionFactoryImpl
 	 *
@@ -143,10 +209,10 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	 * @param checkAllAssociatedObjectsForDifferentShards Flag that controls
 	 * whether or not we do full cross-shard relationship checking (very slow)
 	 */
+	@Deprecated
 	public ShardedSessionFactoryImpl(
 			final List<ShardId> shardIds,
-			final Map<SessionFactoryImplementor,
-			Set<ShardId>> sessionFactoryShardIdMap,
+			final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap,
 			final ShardStrategyFactory shardStrategyFactory,
 			final Set<Class<?>> classesWithoutTopLevelSaveSupport,
 			final boolean checkAllAssociatedObjectsForDifferentShards) {
@@ -216,6 +282,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	 * @param checkAllAssociatedObjectsForDifferentShards Flag that controls
 	 * whether or not we do full cross-shard relationship checking (very slow)
 	 */
+	@Deprecated
 	public ShardedSessionFactoryImpl(
 			Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap,
 			ShardStrategyFactory shardStrategyFactory,

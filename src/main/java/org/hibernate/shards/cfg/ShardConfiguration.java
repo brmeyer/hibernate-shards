@@ -61,28 +61,36 @@ public interface ShardConfiguration {
 	/**
 	 * @return the datasource for the shard
 	 *
-	 * @see org.hibernate.cfg.Environment#DATASOURCE
+	 * @see org.hibernate.cfg.AvailableSettings#DATASOURCE
 	 */
 	String getShardDatasource();
 
 	/**
 	 * @return the cache region prefix for the shard
 	 *
-	 * @see org.hibernate.cfg.Environment#CACHE_REGION_PREFIX
+	 * @see org.hibernate.cfg.AvailableSettings#CACHE_REGION_PREFIX
 	 */
 	String getShardCacheRegionPrefix();
 
 	/**
 	 * @return the class name of driver
 	 *
-	 * @see org.hibernate.cfg.Environment#DRIVER
+	 * @see org.hibernate.cfg.AvailableSettings#DRIVER
 	 */
 	String getDriverClassName();
 
 	/**
 	 * @return the class name of hibernate dialect for current database
 	 *
-	 * @see org.hibernate.cfg.Environment#DIALECT
+	 * @see org.hibernate.cfg.AvailableSettings#DIALECT
 	 */
 	String getHibernateDialect();
+
+	/**
+	 * @return the property that determines whether or not we examine all
+	 * associated objects for shard conflicts when we save or update.
+	 *
+	 * @see org.hibernate.shards.cfg.ShardedAvailableSettings#CHECK_ALL_ASSOCIATED_OBJECTS_FOR_DIFFERENT_SHARDS
+	 */
+	boolean getCheckAllAssociatedObjectInShards();
 }
