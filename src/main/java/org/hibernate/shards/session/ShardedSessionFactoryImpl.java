@@ -818,6 +818,9 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 
 	@Override
 	public SessionBuilderImplementor withOptions() {
+		// assumption is that all session factories are configured the same way,
+		// so it doesn't matter which session factory answers this question
+		//TODO use controlSessionFactory instead of getAnyFactory?
 		return getAnyFactory().withOptions();
 	}
 
