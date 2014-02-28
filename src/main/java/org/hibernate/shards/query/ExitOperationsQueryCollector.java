@@ -18,56 +18,56 @@
 
 package org.hibernate.shards.query;
 
-import org.hibernate.engine.SessionFactoryImplementor;
+import java.util.List;
+
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.shards.strategy.exit.ExitOperationsCollector;
 import org.hibernate.shards.strategy.exit.FirstResultExitOperation;
 import org.hibernate.shards.strategy.exit.MaxResultsExitOperation;
-
-import java.util.List;
 
 /**
  * Exit operations for queries is essentially not implemented. Its intended use
  * is to record a set of aggregation type operations to be executed on the
  * combined results for a query executed on each shard.
- *
+ * <p/>
  * We do implement setMaxResults and setFirstResult as these operations do not
  * require parsing the query string.
- *
+ * <p/>
  * {@inheritDoc}
  *
  * @author Maulik Shah
  */
 public class ExitOperationsQueryCollector implements ExitOperationsCollector {
 
-  // maximum number of results requested by the client
-  private Integer maxResults = null;
+	// maximum number of results requested by the client
+	private Integer maxResults = null;
 
-  // index of the first result requested by the client
-  private Integer firstResult = null;
+	// index of the first result requested by the client
+	private Integer firstResult = null;
 
-  public List<Object> apply(List<Object> result) {
-    if (firstResult != null) {
-      result = new FirstResultExitOperation(firstResult).apply(result);
-    }
-    if (maxResults != null) {
-      result = new MaxResultsExitOperation(maxResults).apply(result);
-    }
+	public List<Object> apply(List<Object> result) {
+		if ( firstResult != null ) {
+			result = new FirstResultExitOperation( firstResult ).apply( result );
+		}
+		if ( maxResults != null ) {
+			result = new MaxResultsExitOperation( maxResults ).apply( result );
+		}
 
-    return result;
-  }
+		return result;
+	}
 
-  public void setSessionFactory(SessionFactoryImplementor sessionFactoryImplementor) {
-    throw new UnsupportedOperationException();
-  }
+	public void setSessionFactory(SessionFactoryImplementor sessionFactoryImplementor) {
+		throw new UnsupportedOperationException();
+	}
 
-  public ExitOperationsCollector setMaxResults(int maxResults) {
-    this.maxResults = maxResults;
-    return this;
-  }
+	public ExitOperationsCollector setMaxResults(int maxResults) {
+		this.maxResults = maxResults;
+		return this;
+	}
 
-  public ExitOperationsCollector setFirstResult(int firstResult) {
-    this.firstResult = firstResult;
-    return this;
-  }
+	public ExitOperationsCollector setFirstResult(int firstResult) {
+		this.firstResult = firstResult;
+		return this;
+	}
 
 }

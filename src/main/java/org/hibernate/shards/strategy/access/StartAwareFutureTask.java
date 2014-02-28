@@ -18,11 +18,10 @@
 
 package org.hibernate.shards.strategy.access;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
+
+import org.jboss.logging.Logger;
 
 /**
  * Extension of FutureTask that provides slightly different cancel()
@@ -50,60 +49,60 @@ import java.util.concurrent.FutureTask;
  */
 class StartAwareFutureTask extends FutureTask<Void> {
 
-    boolean runCalled;
+	boolean runCalled;
 
-    boolean cancelled;
+	boolean cancelled;
 
-    private final int id;
+	private final int id;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = Logger.getLogger( getClass() );
 
-    public StartAwareFutureTask(final Callable<Void> callable, final int id) {
-        super(callable);
-        this.id = id;
-    }
+	public StartAwareFutureTask(final Callable<Void> callable, final int id) {
+		super( callable );
+		this.id = id;
+	}
 
-    @Override
-    public void run() {
+	@Override
+	public void run() {
 
-        log.debug(String.format("Task %d: Run invoked.", id));
-        synchronized (this) {
-            if (cancelled) {
-                log.debug(String.format("Task %d: Task will not run.", id));
-                return;
-            }
-            runCalled = true;
-        }
-        log.debug(String.format("Task %d: Task will run.", id));
-        super.run();
-    }
+		log.debug( String.format( "Task %d: Run invoked.", id ) );
+		synchronized (this) {
+			if ( cancelled ) {
+				log.debug( String.format( "Task %d: Task will not run.", id ) );
+				return;
+			}
+			runCalled = true;
+		}
+		log.debug( String.format( "Task %d: Task will run.", id ) );
+		super.run();
+	}
 
-    @Override
-    public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
-        if (runCalled) {
-            /**
-             * If run has already been called we can't call super.  That's because
-             * super.cancel might be called in between the time we leave the
-             * synchronization block in run() and the time we call super.run().
-             * super.run() checks the state of the FutureTask before actuall invoking
-             * the inner task, and if that check sees that this task is cancelled it
-             * won't run.  That leaves us in a position where a task actually has
-             * been cancelled but cancel returns true, so we're left with a counter
-             * that never gets decremented and everything hangs.
-             */
-            return false;
-        }
-        boolean result = superCancel(mayInterruptIfRunning);
-        cancelled = true;
-        log.debug(String.format("Task %d: Task cancelled.", id));
-        return result;
-    }
+	@Override
+	public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
+		if ( runCalled ) {
+			/**
+			 * If run has already been called we can't call super.  That's because
+			 * super.cancel might be called in between the time we leave the
+			 * synchronization block in run() and the time we call super.run().
+			 * super.run() checks the state of the FutureTask before actuall invoking
+			 * the inner task, and if that check sees that this task is cancelled it
+			 * won't run.  That leaves us in a position where a task actually has
+			 * been cancelled but cancel returns true, so we're left with a counter
+			 * that never gets decremented and everything hangs.
+			 */
+			return false;
+		}
+		boolean result = superCancel( mayInterruptIfRunning );
+		cancelled = true;
+		log.debug( String.format( "Task %d: Task cancelled.", id ) );
+		return result;
+	}
 
-    public int getId() {
-        return id;
-    }
+	public int getId() {
+		return id;
+	}
 
-    boolean superCancel(final boolean mayInterruptIfRunning) {
-        return super.cancel(mayInterruptIfRunning);
-    }
+	boolean superCancel(final boolean mayInterruptIfRunning) {
+		return super.cancel( mayInterruptIfRunning );
+	}
 }

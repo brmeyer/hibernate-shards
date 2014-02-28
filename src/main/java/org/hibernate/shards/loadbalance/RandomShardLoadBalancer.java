@@ -18,10 +18,10 @@
 
 package org.hibernate.shards.loadbalance;
 
-import org.hibernate.shards.ShardId;
-
 import java.util.List;
 import java.util.Random;
+
+import org.hibernate.shards.ShardId;
 
 /**
  * Random selection load balancing algorithm.
@@ -30,21 +30,21 @@ import java.util.Random;
  */
 public class RandomShardLoadBalancer extends BaseShardLoadBalancer {
 
-    private final Random rand = new Random(System.currentTimeMillis());
+	private final Random rand = new Random( System.currentTimeMillis() );
 
-    /**
-     * Construct a RandomShardLoadBalancer
-     *
-     * @param shardIds the ShardIds that we're balancing across
-     */
-    public RandomShardLoadBalancer(final List<ShardId> shardIds) {
-        super(shardIds);
-    }
+	/**
+	 * Construct a RandomShardLoadBalancer
+	 *
+	 * @param shardIds the ShardIds that we're balancing across
+	 */
+	public RandomShardLoadBalancer(final List<ShardId> shardIds) {
+		super( shardIds );
+	}
 
-    @Override
-    protected int getNextIndex() {
-        // Implementation of nextInt() seems to indicate that this method is
-        // threadsafe.  I sure hope I'm right about that.
-        return rand.nextInt();
-    }
+	@Override
+	protected int getNextIndex() {
+		// Implementation of nextInt() seems to indicate that this method is
+		// threadsafe.  I sure hope I'm right about that.
+		return rand.nextInt();
+	}
 }

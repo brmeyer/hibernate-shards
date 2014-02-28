@@ -19,25 +19,26 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
 
 /**
  * @author Maulik Shah
  */
- public class SetCommentEventTest extends TestCase {
+public class SetCommentEventTest extends TestCase {
 
-   public void testSetCommentEventComment() {
-     SetCommentEvent event = new SetCommentEvent(null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setComment(String comment) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetCommentEventComment() {
+		SetCommentEvent event = new SetCommentEvent( null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setComment(String comment) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

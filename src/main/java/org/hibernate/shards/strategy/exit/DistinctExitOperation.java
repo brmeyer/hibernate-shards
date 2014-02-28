@@ -18,29 +18,29 @@
 
 package org.hibernate.shards.strategy.exit;
 
+import java.util.List;
+import java.util.Set;
+
 import org.hibernate.criterion.Projection;
 import org.hibernate.shards.util.Lists;
 import org.hibernate.shards.util.Sets;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Maulik Shah
  */
 public class DistinctExitOperation implements ExitOperation {
 
-    private final Projection distinct;
+	private final Projection distinct;
 
-    public DistinctExitOperation(Projection distinct) {
-        this.distinct = distinct;
-        //TODO (maulik) Make Distinct Work
-        throw new UnsupportedOperationException();
-    }
+	public DistinctExitOperation(Projection distinct) {
+		this.distinct = distinct;
+		//TODO (maulik) Make Distinct Work
+		throw new UnsupportedOperationException();
+	}
 
-    public List<Object> apply(List<Object> results) {
-        final Set<Object> uniqueSet = Sets.newHashSet();
-        uniqueSet.addAll(ExitOperationUtils.getNonNullList(results));
-        return Lists.newArrayList(uniqueSet);
-    }
+	public List<Object> apply(List<Object> results) {
+		final Set<Object> uniqueSet = Sets.newHashSet();
+		uniqueSet.addAll( ExitOperationUtils.getNonNullList( results ) );
+		return Lists.newArrayList( uniqueSet );
+	}
 }

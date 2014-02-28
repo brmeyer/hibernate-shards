@@ -18,10 +18,10 @@
 
 package org.hibernate.shards.strategy.exit;
 
+import java.util.List;
+
 import org.hibernate.shards.Shard;
 import org.hibernate.shards.util.Lists;
-
-import java.util.List;
 
 /**
  * Threadsafe ExistStrategy that concatenates all the lists that are added.
@@ -30,14 +30,14 @@ import java.util.List;
  */
 public class ConcatenateListsExitStrategy implements ExitStrategy<List<Object>> {
 
-  private final List<Object> result = Lists.newArrayList();
+	private final List<Object> result = Lists.newArrayList();
 
-  public synchronized boolean addResult(List<Object> oneResult, Shard shard) {
-    result.addAll(oneResult);
-    return false;
-  }
+	public synchronized boolean addResult(List<Object> oneResult, Shard shard) {
+		result.addAll( oneResult );
+		return false;
+	}
 
-  public List<Object> compileResults(ExitOperationsCollector exitOperationsCollector) {
-    return exitOperationsCollector.apply(result);
-  }
+	public List<Object> compileResults(ExitOperationsCollector exitOperationsCollector) {
+		return exitOperationsCollector.apply( result );
+	}
 }

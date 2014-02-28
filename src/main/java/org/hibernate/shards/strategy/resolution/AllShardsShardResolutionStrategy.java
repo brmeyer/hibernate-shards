@@ -18,23 +18,23 @@
 
 package org.hibernate.shards.strategy.resolution;
 
+import java.util.List;
+
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
-
-import java.util.List;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class AllShardsShardResolutionStrategy extends BaseShardResolutionStrategy {
 
-    public AllShardsShardResolutionStrategy(final List<ShardId> shardIds) {
-        super(shardIds);
-    }
+	public AllShardsShardResolutionStrategy(final List<ShardId> shardIds) {
+		super( shardIds );
+	}
 
-    @Override
-    public List<ShardId> selectShardIdsFromShardResolutionStrategyData(
-            final ShardResolutionStrategyData shardResolutionStrategyData) {
-        return shardIds;
-    }
+	@Override
+	public List<ShardId> selectShardIdsFromShardResolutionStrategyData(
+			final ShardResolutionStrategyData shardResolutionStrategyData) {
+		return shardIds;
+	}
 }

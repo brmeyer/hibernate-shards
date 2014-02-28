@@ -19,20 +19,19 @@
 package org.hibernate.shards.criteria;
 
 import org.hibernate.Criteria;
-import org.hibernate.impl.CriteriaImpl;
 
 /**
- * Interface describing a {@link CriteriaImpl.Subcriteria}
+ * Interface describing a {@link org.hibernate.internal.CriteriaImpl.Subcriteria}
  * that is shard-aware.  A ShardedSubcriteria must know how to provide
  * a reference to its parent {@link ShardedCriteria}.
  *
  * @author maxr@google.com (Max Ross)
- * @see CriteriaImpl.Subcriteria
+ * @see org.hibernate.internal.CriteriaImpl.Subcriteria
  */
 interface ShardedSubcriteria extends Criteria {
 
-    /**
-     * @return the owning ShardedCriteria
-     */
-    ShardedCriteria getParentCriteria();
+	/**
+	 * @return the owning ShardedCriteria
+	 */
+	ShardedCriteria getParentCriteria();
 }

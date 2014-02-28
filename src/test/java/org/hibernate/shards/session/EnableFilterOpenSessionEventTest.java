@@ -19,6 +19,7 @@
 package org.hibernate.shards.session;
 
 import junit.framework.TestCase;
+
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.hibernate.shards.defaultmock.SessionDefaultMock;
@@ -28,18 +29,18 @@ import org.hibernate.shards.defaultmock.SessionDefaultMock;
  */
 public class EnableFilterOpenSessionEventTest extends TestCase {
 
-  public void testOnOpenSession() {
-    EnableFilterOpenSessionEvent event = new EnableFilterOpenSessionEvent("yam");
-    final boolean[] called = {false};
-    Session session = new SessionDefaultMock() {
-      @Override
-      public Filter enableFilter(String filterName) {
-        called[0] = true;
-        return null;
-      }
-    };
-    event.onOpenSession(session);
-    assertTrue(called[0]);
-  }
+	public void testOnOpenSession() {
+		EnableFilterOpenSessionEvent event = new EnableFilterOpenSessionEvent( "yam" );
+		final boolean[] called = {false};
+		Session session = new SessionDefaultMock() {
+			@Override
+			public Filter enableFilter(String filterName) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onOpenSession( session );
+		assertTrue( called[0] );
+	}
 
 }

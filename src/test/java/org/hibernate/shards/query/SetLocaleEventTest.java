@@ -18,42 +18,43 @@
 
 package org.hibernate.shards.query;
 
+import java.util.Locale;
+
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
-
-import java.util.Locale;
 
 /**
  * @author Maulik Shah
  */
 public class SetLocaleEventTest extends TestCase {
 
-   public void testSetLocaleEventPositionVal() {
-     SetLocaleEvent event = new SetLocaleEvent(-1, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setLocale(int position, Locale val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetLocaleEventPositionVal() {
+		SetLocaleEvent event = new SetLocaleEvent( -1, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setLocale(int position, Locale val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-   public void testSetLocaleEventNameVal() {
-     SetLocaleEvent event = new SetLocaleEvent(null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setLocale(String name, Locale val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetLocaleEventNameVal() {
+		SetLocaleEvent event = new SetLocaleEvent( null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setLocale(String name, Locale val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

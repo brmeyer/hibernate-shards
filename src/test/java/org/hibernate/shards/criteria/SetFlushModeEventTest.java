@@ -18,29 +18,30 @@
 
 package org.hibernate.shards.criteria;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.shards.defaultmock.CriteriaDefaultMock;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class SetFlushModeEventTest {
 
-    @Test
-    public void testOnOpenSession() {
-        SetFlushModeEvent event = new SetFlushModeEvent(FlushMode.ALWAYS);
-        final boolean[] called = {false};
-        Criteria crit = new CriteriaDefaultMock() {
-            @Override
-            public Criteria setFlushMode(FlushMode flushMode) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(crit);
-        Assert.assertTrue(called[0]);
-    }
+	@Test
+	public void testOnOpenSession() {
+		SetFlushModeEvent event = new SetFlushModeEvent( FlushMode.ALWAYS );
+		final boolean[] called = {false};
+		Criteria crit = new CriteriaDefaultMock() {
+			@Override
+			public Criteria setFlushMode(FlushMode flushMode) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( crit );
+		Assert.assertTrue( called[0] );
+	}
 }

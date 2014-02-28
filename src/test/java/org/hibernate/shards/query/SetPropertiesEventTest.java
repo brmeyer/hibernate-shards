@@ -18,43 +18,44 @@
 
 package org.hibernate.shards.query;
 
-import junit.framework.TestCase;
-import org.hibernate.Query;
-import org.hibernate.shards.defaultmock.QueryDefaultMock;
-
 import java.util.Collections;
 import java.util.Map;
+
+import junit.framework.TestCase;
+
+import org.hibernate.Query;
+import org.hibernate.shards.defaultmock.QueryDefaultMock;
 
 /**
  * @author Maulik Shah
  */
- public class SetPropertiesEventTest extends TestCase {
+public class SetPropertiesEventTest extends TestCase {
 
-  public void testSetPropertiesEventBean() {
-    SetPropertiesEvent event = new SetPropertiesEvent(new Object());
-    final boolean[] called = {false};
-    Query query = new QueryDefaultMock() {
-      @Override
-      public Query setProperties(Object bean) {
-        called[0] = true;
-        return null;
-      }
-    };
-    event.onEvent(query);
-    assertTrue(called[0]);
-  }
+	public void testSetPropertiesEventBean() {
+		SetPropertiesEvent event = new SetPropertiesEvent( new Object() );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setProperties(Object bean) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-  public void testSetPropertiesEventMap() {
-    SetPropertiesEvent event = new SetPropertiesEvent(Collections.emptyMap());
-    final boolean[] called = {false};
-    Query query = new QueryDefaultMock() {
-      @Override
-      public Query setProperties(Map map) {
-        called[0] = true;
-        return null;
-      }
-    };
-    event.onEvent(query);
-    assertTrue(called[0]);
-  }
+	public void testSetPropertiesEventMap() {
+		SetPropertiesEvent event = new SetPropertiesEvent( Collections.emptyMap() );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setProperties(Map map) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

@@ -3,11 +3,12 @@ apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'uploadAuth'
-apply from: './libraries.gradle'
+apply plugin: 'jdocbook'
+apply from: "./libraries.gradle"
 
 group = 'org.hibernate'
-version = '4.0.0-SNAPSHOT'
-
+version = '4.3.1-SNAPSHOT'
+buildDir = "target"
 targetCompatibility = "1.6"
 sourceCompatibility = "1.6"
 
@@ -27,12 +28,39 @@ buildscript {
     }
     dependencies {
         classpath 'org.hibernate.build.gradle:gradle-upload-auth-plugin:1.1.1'
+        classpath "org.jboss.jdocbook:gradle-jdocbook:1.2.1"
+    }
+}
+
+idea {
+    project {
+        languageLevel = '1.6'
+        ipr {
+            withXml { provider ->
+                provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+                def maxHeapSizeConfig =  provider.node.component.find { it.@name == 'JavacSettings' }
+                if( maxHeapSizeConfig == null ){
+                    def javacSettingsNode =  provider.node.appendNode('component',[name: 'JavacSettings'])
+                    javacSettingsNode.appendNode('option', [name:"MAXIMUM_HEAP_SIZE", value:"512"])
+                }
+            }
+            beforeMerged { project ->
+                project.modulePaths.clear()
+            }
+        }
+    }
+    module {
+        name = "hibernate-shards"
     }
 }
 
 
+
 // set up special classpath elements ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 configurations {
+    jbossLoggingTool {
+        description = "Dependencies for running the JBoss logging AnnotationProcessor tool"
+    }
     deployerJars {
         description = 'Jars needed for doing deployment to JBoss Nexus repo'
     }
@@ -43,15 +71,54 @@ configurations {
 
 // declare dependencies ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 dependencies {
-    compile( libraries.slf4j_api )
-    compile( 'org.hibernate:hibernate-core:3.6.10.Final' )
-
-    testCompile( libraries.junit )  // may already be a transitive dep from testing
+    compile( libraries.hibernate_orm )
+    testCompile( libraries.hibernate_testing )
     testCompile( libraries.hsqldb )
-    testCompile( libraries.slf4j_api )
     testCompile( libraries.mockito )
+    testRuntime( libraries.slf4j_api )
     testRuntime( libraries.slf4j_log4j12 )
-    testRuntime( libraries.javassist ) // may already be a transitive dep from orm
+    testRuntime( libraries.jcl_slf4j )
+    testRuntime( libraries.jcl_api )
+    testRuntime( libraries.jcl )
+
+    jdocbookXsl( libraries.pressgang_xslt )
+    jdocbookXsl( libraries.pressgang_fonts )
+    jdocbookStyles( libraries.pressgang_style )
+
+    jbossLoggingTool( libraries.logging_processor )
+
+    deployerJars( 'org.apache.maven.wagon:wagon-http:1.0' )
+}
+
+jdocbook {
+    // apply shared formatting config ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    format('html_single') {
+        finalName = "index.html"
+        stylesheet = "classpath:/xslt/org/hibernate/jdocbook/xslt/xhtml-single.xsl"
+    }
+    format('html') {
+        finalName = "index.html"
+        stylesheet = "classpath:/xslt/org/hibernate/jdocbook/xslt/xhtml.xsl"
+    }
+    reference {
+        masterSourceDocumentName = 'master.xml'
+        useRelativeImageUris = false
+    }
+}
+
+stageStyles_reference.doLast {
+    logger.lifecycle( "Staging style resources")
+    copy {
+        into project.file( "${project.buildDir}/docbook/stage/reference/images" )
+        from project.file( 'src/main/docbook/reference/en-US' )
+        include '**/images/*.png'
+        includeEmptyDirs = false
+    }
+    copy {
+        into project.file( "${project.buildDir}/docbook/stage/reference" )
+        from project.file( 'src/main/docbook/style' )
+        includeEmptyDirs = false
+    }
 }
 
 // MacOS fun-ness ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,12 +129,25 @@ if ( ext.toolsJar.exists() ) {
     }
 }
 
+compileJava.options.define(compilerArgs: ["-proc:none", "-encoding", "UTF-8"])
+compileTestJava.options.define(compilerArgs: ["-proc:none", "-encoding", "UTF-8"])
+
 // Configure test task ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 test {
     systemProperties['hibernate.test.validatefailureexpected'] = true
     systemProperties += System.properties.findAll { it.key.startsWith( "hibernate.") }
     maxHeapSize = "1024m"
 }
+
+processTestResources.doLast( {
+    copy {
+        from( sourceSets.test.java.srcDirs ) {
+            include '**/*.properties'
+            include '**/*.xml'
+        }
+        into sourceSets.test.output.classesDir
+    }
+} )
 
 // Set up jar manifest information ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 manifest.mainAttributes(
@@ -142,16 +222,5 @@ uploadArchives {
 
 // Configure gradlew generation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.1'
-}
-
-
-idea {
-    module {
-        //if you love browsing Javadoc
-        downloadJavadoc = true
-
-        //and hate reading sources :)
-        downloadSources = true
-    }
+    gradleVersion = '1.9'
 }

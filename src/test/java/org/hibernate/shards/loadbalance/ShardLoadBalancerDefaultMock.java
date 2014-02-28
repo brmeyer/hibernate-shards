@@ -18,20 +18,20 @@
 
 package org.hibernate.shards.loadbalance;
 
-import org.hibernate.shards.ShardId;
-
 import java.util.List;
+
+import org.hibernate.shards.ShardId;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class ShardLoadBalancerDefaultMock implements org.hibernate.shards.loadbalance.ShardLoadBalancer {
 
-  public ShardId getNextShardId() {
-    throw new UnsupportedOperationException();
-  }
+	public ShardId getNextShardId() {
+		throw new UnsupportedOperationException();
+	}
 
-  public List<ShardId> getAllShardIds() {
-    throw new UnsupportedOperationException();
-  }
+	public List<ShardId> getAllShardIds() {
+		throw new UnsupportedOperationException();
+	}
 }

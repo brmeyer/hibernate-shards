@@ -19,6 +19,7 @@
 package org.hibernate.shards.session;
 
 import junit.framework.TestCase;
+
 import org.hibernate.CacheMode;
 import org.hibernate.Session;
 import org.hibernate.shards.defaultmock.SessionDefaultMock;
@@ -28,16 +29,16 @@ import org.hibernate.shards.defaultmock.SessionDefaultMock;
  */
 public class SetCacheModeOpenSessionEventTest extends TestCase {
 
-  public void testOnOpenSession() {
-    SetCacheModeOpenSessionEvent event = new SetCacheModeOpenSessionEvent(CacheMode.IGNORE);
-    final boolean[] called = {false};
-    Session session = new SessionDefaultMock() {
-      @Override
-      public void setCacheMode(CacheMode cacheMode) {
-        called[0] = true;
-      }
-    };
-    event.onOpenSession(session);
-    assertTrue(called[0]);
-  }
+	public void testOnOpenSession() {
+		SetCacheModeOpenSessionEvent event = new SetCacheModeOpenSessionEvent( CacheMode.IGNORE );
+		final boolean[] called = {false};
+		Session session = new SessionDefaultMock() {
+			@Override
+			public void setCacheMode(CacheMode cacheMode) {
+				called[0] = true;
+			}
+		};
+		event.onOpenSession( session );
+		assertTrue( called[0] );
+	}
 }

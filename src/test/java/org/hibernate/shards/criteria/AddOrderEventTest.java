@@ -18,30 +18,30 @@
 
 package org.hibernate.shards.criteria;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.shards.defaultmock.CriteriaDefaultMock;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class AddOrderEventTest {
 
-    @Test
-    public void testOnOpenSession() {
-        AddOrderEvent event = new AddOrderEvent(null);
-        final boolean[] called = {false};
-        Criteria crit = new CriteriaDefaultMock() {
-            @Override
-            public Criteria addOrder(Order order) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(crit);
-        Assert.assertTrue(called[0]);
-    }
+	@Test
+	public void testOnOpenSession() {
+		AddOrderEvent event = new AddOrderEvent( null );
+		final boolean[] called = {false};
+		Criteria crit = new CriteriaDefaultMock() {
+			@Override
+			public Criteria addOrder(Order order) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( crit );
+		Assert.assertTrue( called[0] );
+	}
 }

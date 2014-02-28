@@ -18,11 +18,11 @@
 
 package org.hibernate.shards;
 
-import org.hibernate.shards.util.Preconditions;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.hibernate.shards.util.Preconditions;
 
 /**
  * Base implementation for HasShadIdList.
@@ -32,22 +32,22 @@ import java.util.List;
  */
 public abstract class BaseHasShardIdList implements HasShardIdList {
 
-    // our list of {@link ShardId} objects
-    protected final List<ShardId> shardIds;
+	// our list of {@link ShardId} objects
+	protected final List<ShardId> shardIds;
 
-    /**
-     * Construct a BaseHasShardIdList.  {@link List} cannot be empty
-     *
-     * @param shardIds the {@link ShardId}s
-     */
-    protected BaseHasShardIdList(final List<ShardId> shardIds) {
-        Preconditions.checkNotNull(shardIds);
-        Preconditions.checkArgument(!shardIds.isEmpty());
-        // make our own copy to be safe
-        this.shardIds = new ArrayList<ShardId>(shardIds);
-    }
+	/**
+	 * Construct a BaseHasShardIdList.  {@link List} cannot be empty
+	 *
+	 * @param shardIds the {@link ShardId}s
+	 */
+	protected BaseHasShardIdList(final List<ShardId> shardIds) {
+		Preconditions.checkNotNull( shardIds );
+		Preconditions.checkArgument( !shardIds.isEmpty() );
+		// make our own copy to be safe
+		this.shardIds = new ArrayList<ShardId>( shardIds );
+	}
 
-    public List<ShardId> getShardIds() {
-        return Collections.unmodifiableList(shardIds);
-    }
+	public List<ShardId> getShardIds() {
+		return Collections.unmodifiableList( shardIds );
+	}
 }

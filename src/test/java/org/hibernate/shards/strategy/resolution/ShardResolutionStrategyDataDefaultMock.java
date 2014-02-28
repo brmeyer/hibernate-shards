@@ -18,20 +18,20 @@
 
 package org.hibernate.shards.strategy.resolution;
 
-import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
-
 import java.io.Serializable;
+
+import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class ShardResolutionStrategyDataDefaultMock implements ShardResolutionStrategyData {
 
-  public String getEntityName() {
-    throw new UnsupportedOperationException();
-  }
+	public String getEntityName() {
+		throw new UnsupportedOperationException();
+	}
 
-  public Serializable getId() {
-    throw new UnsupportedOperationException();
-  }
+	public Serializable getId() {
+		throw new UnsupportedOperationException();
+	}
 }

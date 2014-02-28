@@ -19,6 +19,7 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.CacheMode;
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
@@ -28,17 +29,17 @@ import org.hibernate.shards.defaultmock.QueryDefaultMock;
  */
 public class SetCacheModeEventTest extends TestCase {
 
-   public void testSetCacheModeEventCachemode() {
-     SetCacheModeEvent event = new SetCacheModeEvent(null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setCacheMode(CacheMode cacheMode) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetCacheModeEventCachemode() {
+		SetCacheModeEvent event = new SetCacheModeEvent( null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setCacheMode(CacheMode cacheMode) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

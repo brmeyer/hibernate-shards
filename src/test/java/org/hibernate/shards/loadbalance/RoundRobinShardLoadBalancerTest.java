@@ -18,22 +18,23 @@
 
 package org.hibernate.shards.loadbalance;
 
+import java.util.List;
+
 import junit.framework.TestCase;
+
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.util.Lists;
-
-import java.util.List;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class RoundRobinShardLoadBalancerTest extends TestCase {
 
-  public void testBalancer() {
-    List<ShardId> shardIds = Lists.newArrayList(new ShardId(1), new ShardId(2));
-    RoundRobinShardLoadBalancer balancer = new RoundRobinShardLoadBalancer(shardIds);
-    assertEquals(0, balancer.getNextIndex());
-    assertEquals(1, balancer.getNextIndex());
-    assertEquals(0, balancer.getNextIndex());
-  }
+	public void testBalancer() {
+		List<ShardId> shardIds = Lists.newArrayList( new ShardId( 1 ), new ShardId( 2 ) );
+		RoundRobinShardLoadBalancer balancer = new RoundRobinShardLoadBalancer( shardIds );
+		assertEquals( 0, balancer.getNextIndex() );
+		assertEquals( 1, balancer.getNextIndex() );
+		assertEquals( 0, balancer.getNextIndex() );
+	}
 }

@@ -18,15 +18,15 @@
 
 package org.hibernate.shards.id;
 
+import java.io.Serializable;
+
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.shards.ShardId;
-
-import java.io.Serializable;
 
 /**
  * @author Tomislav Nad
  */
 public interface ShardEncodingIdentifierGenerator extends IdentifierGenerator {
 
-    ShardId extractShardId(Serializable identifier);
+	ShardId extractShardId(Serializable identifier);
 }

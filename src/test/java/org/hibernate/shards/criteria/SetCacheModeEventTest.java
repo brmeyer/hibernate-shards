@@ -18,29 +18,30 @@
 
 package org.hibernate.shards.criteria;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import org.hibernate.CacheMode;
 import org.hibernate.Criteria;
 import org.hibernate.shards.defaultmock.CriteriaDefaultMock;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class SetCacheModeEventTest {
 
-    @Test
-    public void testOnOpenSession() {
-        SetCacheModeEvent event = new SetCacheModeEvent(CacheMode.GET);
-        final boolean[] called = {false};
-        Criteria crit = new CriteriaDefaultMock() {
-            @Override
-            public Criteria setCacheMode(CacheMode cacheMode) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(crit);
-        Assert.assertTrue(called[0]);
-    }
+	@Test
+	public void testOnOpenSession() {
+		SetCacheModeEvent event = new SetCacheModeEvent( CacheMode.GET );
+		final boolean[] called = {false};
+		Criteria crit = new CriteriaDefaultMock() {
+			@Override
+			public Criteria setCacheMode(CacheMode cacheMode) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( crit );
+		Assert.assertTrue( called[0] );
+	}
 }

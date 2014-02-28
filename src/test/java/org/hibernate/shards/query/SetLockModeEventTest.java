@@ -19,6 +19,7 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.LockMode;
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
@@ -28,17 +29,17 @@ import org.hibernate.shards.defaultmock.QueryDefaultMock;
  */
 public class SetLockModeEventTest extends TestCase {
 
-   public void testSetLockModeEventAliasLockmode() {
-     SetLockModeEvent event = new SetLockModeEvent(null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setLockMode(String alias, LockMode lockMode) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetLockModeEventAliasLockmode() {
+		SetLockModeEvent event = new SetLockModeEvent( null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setLockMode(String alias, LockMode lockMode) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

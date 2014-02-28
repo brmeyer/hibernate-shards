@@ -18,9 +18,9 @@
 
 package org.hibernate.shards.strategy.exit;
 
-import org.hibernate.engine.SessionFactoryImplementor;
-
 import java.util.List;
+
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 
 /**
  * Classes that implement this interface are designed to manage the results
@@ -34,8 +34,8 @@ import java.util.List;
  */
 public interface ExitOperationsCollector {
 
-  List<Object> apply(List<Object> result);
+	List<Object> apply(List<Object> result);
 
-  void setSessionFactory(SessionFactoryImplementor sessionFactoryImplementor);
+	void setSessionFactory(SessionFactoryImplementor sessionFactoryImplementor);
 
 }

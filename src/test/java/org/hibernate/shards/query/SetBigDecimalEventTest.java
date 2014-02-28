@@ -18,42 +18,43 @@
 
 package org.hibernate.shards.query;
 
+import java.math.BigDecimal;
+
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
-
-import java.math.BigDecimal;
 
 /**
  * @author Maulik Shah
  */
 public class SetBigDecimalEventTest extends TestCase {
 
-    public void testSetBigDecimalEventPositionVal() {
-        final SetBigDecimalEvent event = new SetBigDecimalEvent(-1, null);
-        final boolean[] called = {false};
-        final Query query = new QueryDefaultMock() {
-            @Override
-            public Query setBigDecimal(int position, BigDecimal val) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(query);
-        assertTrue(called[0]);
-    }
+	public void testSetBigDecimalEventPositionVal() {
+		final SetBigDecimalEvent event = new SetBigDecimalEvent( -1, null );
+		final boolean[] called = {false};
+		final Query query = new QueryDefaultMock() {
+			@Override
+			public Query setBigDecimal(int position, BigDecimal val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-    public void testSetBigDecimalEventNameVal() {
-        final SetBigDecimalEvent event = new SetBigDecimalEvent(null, null);
-        final boolean[] called = {false};
-        final Query query = new QueryDefaultMock() {
-            @Override
-            public Query setBigDecimal(String name, BigDecimal val) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(query);
-        assertTrue(called[0]);
-    }
+	public void testSetBigDecimalEventNameVal() {
+		final SetBigDecimalEvent event = new SetBigDecimalEvent( null, null );
+		final boolean[] called = {false};
+		final Query query = new QueryDefaultMock() {
+			@Override
+			public Query setBigDecimal(String name, BigDecimal val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

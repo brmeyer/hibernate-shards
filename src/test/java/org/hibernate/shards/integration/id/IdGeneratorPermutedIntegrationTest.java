@@ -18,17 +18,18 @@
 
 package org.hibernate.shards.integration.id;
 
-import org.hibernate.shards.PermutationHelper;
-import org.hibernate.shards.integration.BaseShardingIntegrationTestCase;
-import org.hibernate.shards.integration.Permutation;
-import org.hibernate.shards.model.Building;
-import org.hibernate.shards.util.Lists;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.List;
+import org.hibernate.shards.PermutationHelper;
+import org.hibernate.shards.integration.BaseShardingIntegrationTestCase;
+import org.hibernate.shards.integration.Permutation;
+import org.hibernate.shards.model.Building;
+import org.hibernate.shards.util.Lists;
 
 /**
  * @author Tomislav Nad
@@ -36,46 +37,46 @@ import java.util.List;
 @RunWith(Parameterized.class)
 public class IdGeneratorPermutedIntegrationTest extends BaseShardingIntegrationTestCase {
 
-    public IdGeneratorPermutedIntegrationTest(final Permutation perm) {
-        super(perm);
-    }
+	public IdGeneratorPermutedIntegrationTest(final Permutation perm) {
+		super( perm );
+	}
 
-    @Test
-    public void testSingleShard() {
-        session.beginTransaction();
-        Building b = new Building();
-        b.setName("foo");
-        session.save(b);
-        session.getTransaction().commit();
-        resetSession();
-        Assert.assertNotNull(b.getBuildingId());
+	@Test
+	public void testSingleShard() {
+		session.beginTransaction();
+		Building b = new Building();
+		b.setName( "foo" );
+		session.save( b );
+		session.getTransaction().commit();
+		resetSession();
+		Assert.assertNotNull( b.getBuildingId() );
 
-        Building b2 = (Building) session.get(Building.class, b.getBuildingId());
-        Assert.assertNotNull(b2);
-        Assert.assertEquals(b.getName(), b2.getName());
-    }
+		Building b2 = (Building) session.get( Building.class, b.getBuildingId() );
+		Assert.assertNotNull( b2 );
+		Assert.assertEquals( b.getName(), b2.getName() );
+	}
 
-    @Test
-    public void testMultipleShards() {
-        session.beginTransaction();
-        List<Building> buildings = Lists.newArrayList();
-        for (int i = 0; i < getNumDatabases(); ++i) {
-            Building b = new Building();
-            b.setName("foo" + i);
-            buildings.add(b);
-            session.save(b);
-        }
-        session.getTransaction().commit();
-        resetSession();
-        for (Building b : buildings) {
-            Assert.assertNotNull(b.getBuildingId());
-            Building returnedBuilding = (Building) session.get(Building.class, b.getBuildingId());
-            Assert.assertEquals(b.getName(), returnedBuilding.getName());
-        }
-    }
+	@Test
+	public void testMultipleShards() {
+		session.beginTransaction();
+		List<Building> buildings = Lists.newArrayList();
+		for ( int i = 0; i < getNumDatabases(); ++i ) {
+			Building b = new Building();
+			b.setName( "foo" + i );
+			buildings.add( b );
+			session.save( b );
+		}
+		session.getTransaction().commit();
+		resetSession();
+		for ( Building b : buildings ) {
+			Assert.assertNotNull( b.getBuildingId() );
+			Building returnedBuilding = (Building) session.get( Building.class, b.getBuildingId() );
+			Assert.assertEquals( b.getName(), returnedBuilding.getName() );
+		}
+	}
 
-    @Parameterized.Parameters(name = "{index}: [{0}]")
-    public static Iterable<Object[]> data() {
-        return PermutationHelper.data();
-    }
+	@Parameterized.Parameters()
+	public static Iterable<Object[]> data() {
+		return PermutationHelper.data();
+	}
 }

@@ -18,50 +18,71 @@
 
 package org.hibernate.shards;
 
+import javax.transaction.Synchronization;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-
-import javax.transaction.Synchronization;
+import org.hibernate.engine.transaction.spi.LocalStatus;
 
 /**
  * @author Tomislav Nad
  */
 public class ShardedTransactionDefaultMock implements ShardedTransaction {
 
-  public void setupTransaction(Session session) {
-    throw new UnsupportedOperationException();
-  }
+	public void setupTransaction(Session session) {
+		throw new UnsupportedOperationException();
+	}
 
-  public void begin() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public void begin() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public void commit() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public void commit() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public void rollback() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public void rollback() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public boolean wasRolledBack() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public boolean wasRolledBack() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public boolean wasCommitted() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public boolean wasCommitted() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public boolean isActive() throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public boolean isActive() throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public void registerSynchronization(Synchronization synchronization)
-      throws HibernateException {
-    throw new UnsupportedOperationException();
-  }
+	public void registerSynchronization(Synchronization synchronization)
+			throws HibernateException {
+		throw new UnsupportedOperationException();
+	}
 
-  public void setTimeout(int seconds) {
-    throw new UnsupportedOperationException();
-  }
+	public void setTimeout(int seconds) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public LocalStatus getLocalStatus() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isInitiator() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isParticipating() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int getTimeout() {
+		throw new UnsupportedOperationException();
+	}
 }

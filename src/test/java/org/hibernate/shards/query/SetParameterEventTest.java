@@ -19,6 +19,7 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
 import org.hibernate.type.Type;
@@ -28,59 +29,59 @@ import org.hibernate.type.Type;
  */
 public class SetParameterEventTest extends TestCase {
 
-   public void testSetParameterEventPositionValType() {
-     SetParameterEvent event = new SetParameterEvent(-1, null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setParameter(int position, Object val, Type type) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetParameterEventPositionValType() {
+		SetParameterEvent event = new SetParameterEvent( -1, null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setParameter(int position, Object val, Type type) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-   public void testSetParameterEventNameValType() {
-     SetParameterEvent event = new SetParameterEvent(null, null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setParameter(String name, Object val, Type type) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetParameterEventNameValType() {
+		SetParameterEvent event = new SetParameterEvent( null, null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setParameter(String name, Object val, Type type) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-   public void testSetParameterEventPositionVal() {
-     SetParameterEvent event = new SetParameterEvent(-1, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setParameter(int position, Object val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetParameterEventPositionVal() {
+		SetParameterEvent event = new SetParameterEvent( -1, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setParameter(int position, Object val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-   public void testSetParameterEventNameVal() {
-     SetParameterEvent event = new SetParameterEvent(null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setParameter(String name, Object val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetParameterEventNameVal() {
+		SetParameterEvent event = new SetParameterEvent( null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setParameter(String name, Object val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

@@ -27,18 +27,18 @@ import org.hibernate.HibernateException;
  * between AccountManagers and Accounts, and we are sharding by AccountManager.
  * That means an AccountManager and all her Accounts live on the same shard.
  * Now suppose you did the following:
- *
+ * <p/>
  * {@code
-public void reassignLeastProfitableAccount(AccountManager mgr1, AccountManager mgr2) {
-  Account acct = mgr1.removeLeastProfitableAccount();
-  acct.setAccountManager(mgr2);
-  mgr2.addAccount(acct);
-}}
+ * public void reassignLeastProfitableAccount(AccountManager mgr1, AccountManager mgr2) {
+ * Account acct = mgr1.removeLeastProfitableAccount();
+ * acct.setAccountManager(mgr2);
+ * mgr2.addAccount(acct);
+ * }}
  * If the 2 managers happen to live on different shards and you were to then
  * attempt to save the second manager you would receive a
  * CrossShardAssociationException because the account lives on a different shard
  * than the manager with which you're attempting to associate it.
- *
+ * <p/>
  * Now you'll notice a few things about this example.  First, it doesn't really
  * respect the constraints of an owned one-to-many relationship.  If AccountManagers
  * truly own Accounts (as opposed to just being associated with them), it doesn't
@@ -50,7 +50,7 @@ public void reassignLeastProfitableAccount(AccountManager mgr1, AccountManager m
  * off just letting Hibernate manage the relationship between AccountManagers
  * and account ids and loading the objects uniquely identified by those ids
  * on your own.
- *
+ * <p/>
  * The other thing you'll notice is that if the two managers happen to live on
  * the same shard this will work just fine.  Yup, it will.  We can detect
  * cross-shard relationships.  We can't detect risky code.  You just need to
@@ -60,15 +60,15 @@ public void reassignLeastProfitableAccount(AccountManager mgr1, AccountManager m
  */
 public class CrossShardAssociationException extends HibernateException {
 
-  public CrossShardAssociationException(Throwable root) {
-    super(root);
-  }
+	public CrossShardAssociationException(Throwable root) {
+		super( root );
+	}
 
-  public CrossShardAssociationException(String string, Throwable root) {
-    super(string, root);
-  }
+	public CrossShardAssociationException(String string, Throwable root) {
+		super( string, root );
+	}
 
-  public CrossShardAssociationException(String s) {
-    super(s);
-  }
+	public CrossShardAssociationException(String s) {
+		super( s );
+	}
 }

@@ -18,24 +18,24 @@
 
 package org.hibernate.shards.strategy.exit;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.RowCountProjection;
 import org.hibernate.shards.util.Preconditions;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Maulik Shah
  */
 public class RowCountExitOperation implements ProjectionExitOperation {
 
-  public RowCountExitOperation(Projection projection) {
-    Preconditions.checkState(projection instanceof RowCountProjection);
-  }
+	public RowCountExitOperation(Projection projection) {
+		Preconditions.checkState( projection instanceof RowCountProjection );
+	}
 
-  public List<Object> apply(List<Object> results) {
-    List<Object> nonNullResults = ExitOperationUtils.getNonNullList(results);
-    return Collections.singletonList((Object) nonNullResults.size());
-  }
+	public List<Object> apply(List<Object> results) {
+		List<Object> nonNullResults = ExitOperationUtils.getNonNullList( results );
+		return Collections.singletonList( (Object) nonNullResults.size() );
+	}
 }

@@ -18,28 +18,29 @@
 
 package org.hibernate.shards.criteria;
 
-import org.hibernate.Criteria;
-import org.hibernate.shards.defaultmock.CriteriaDefaultMock;
 import org.junit.Assert;
 import org.junit.Test;
+
+import org.hibernate.Criteria;
+import org.hibernate.shards.defaultmock.CriteriaDefaultMock;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class SetCommentEventTest {
 
-    @Test
-    public void testOnOpenSession() {
-        SetCommentEvent event = new SetCommentEvent(null);
-        final boolean[] called = {false};
-        Criteria crit = new CriteriaDefaultMock() {
-            @Override
-            public Criteria setComment(String comment) {
-                called[0] = true;
-                return null;
-            }
-        };
-        event.onEvent(crit);
-        Assert.assertTrue(called[0]);
-    }
+	@Test
+	public void testOnOpenSession() {
+		SetCommentEvent event = new SetCommentEvent( null );
+		final boolean[] called = {false};
+		Criteria crit = new CriteriaDefaultMock() {
+			@Override
+			public Criteria setComment(String comment) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( crit );
+		Assert.assertTrue( called[0] );
+	}
 }

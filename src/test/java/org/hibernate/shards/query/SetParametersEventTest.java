@@ -19,6 +19,7 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
 import org.hibernate.type.Type;
@@ -28,17 +29,17 @@ import org.hibernate.type.Type;
  */
 public class SetParametersEventTest extends TestCase {
 
-   public void testSetParametersEventValuesTypes() {
-     SetParametersEvent event = new SetParametersEvent(null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setParameters(Object[] values, Type[] types) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetParametersEventValuesTypes() {
+		SetParametersEvent event = new SetParametersEvent( null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setParameters(Object[] values, Type[] types) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

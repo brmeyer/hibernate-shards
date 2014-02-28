@@ -18,10 +18,13 @@
 
 package org.hibernate.shards;
 
+import java.util.List;
+import java.util.Set;
+
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.classic.Session;
-import org.hibernate.engine.SessionFactoryImplementor;
+import org.hibernate.Session;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.shards.criteria.CriteriaEvent;
 import org.hibernate.shards.criteria.CriteriaId;
 import org.hibernate.shards.criteria.ShardedCriteria;
@@ -29,9 +32,6 @@ import org.hibernate.shards.query.QueryEvent;
 import org.hibernate.shards.query.QueryId;
 import org.hibernate.shards.query.ShardedQuery;
 import org.hibernate.shards.session.OpenSessionEvent;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Interface representing a Shard.  A shard is a physical partition (as opposed
@@ -45,95 +45,99 @@ import java.util.Set;
  */
 public interface Shard {
 
-    /**
-     * @return the SessionFactoryImplementor that owns the Session associated with this Shard
-     */
-    SessionFactoryImplementor getSessionFactoryImplementor();
+	/**
+	 * @return the SessionFactoryImplementor that owns the Session associated with this Shard
+	 */
+	SessionFactoryImplementor getSessionFactoryImplementor();
 
-    /**
-     * @return the Session associated with this Shard.  Will return null if
-     *         the Session has not yet been established.
-     */
+	/**
+	 * @return the Session associated with this Shard.  Will return null if
+	 * the Session has not yet been established.
+	 */
   /* @Nullable */ Session getSession();
 
-    /**
-     * @param event the event to add
-     */
-    void addOpenSessionEvent(OpenSessionEvent event);
+	/**
+	 * @param event the event to add
+	 */
+	void addOpenSessionEvent(OpenSessionEvent event);
 
-    /**
-     * @return establish a Session using the SessionFactoryImplementor associated
-     *         with this Shard and apply any OpenSessionEvents that have been added.  If
-     *         the Session has already been established just return it.
-     */
-    Session establishSession();
+	/**
+	 * @return establish a Session using the SessionFactoryImplementor associated
+	 * with this Shard and apply any OpenSessionEvents that have been added.  If
+	 * the Session has already been established just return it.
+	 */
+	Session establishSession();
 
-    /**
-     * @param id the id of the Criteria
-     * @return the Critieria uniquely identified by the given id (unique to the Shard)
-     */
-    Criteria getCriteriaById(CriteriaId id);
+	/**
+	 * @param id the id of the Criteria
+	 *
+	 * @return the Critieria uniquely identified by the given id (unique to the Shard)
+	 */
+	Criteria getCriteriaById(CriteriaId id);
 
-    /**
-     * @param id    the id of the Criteria with which the event should be associated
-     * @param event the event to add
-     */
-    void addCriteriaEvent(CriteriaId id, CriteriaEvent event);
+	/**
+	 * @param id the id of the Criteria with which the event should be associated
+	 * @param event the event to add
+	 */
+	void addCriteriaEvent(CriteriaId id, CriteriaEvent event);
 
-    /**
-     * @param shardedCriteria the ShardedCriteria for which this Shard should
-     *                        create an actual {@link Criteria} object.
-     * @return a Criteria for the given ShardedCriteria
-     */
-    Criteria establishCriteria(ShardedCriteria shardedCriteria);
+	/**
+	 * @param shardedCriteria the ShardedCriteria for which this Shard should
+	 * create an actual {@link Criteria} object.
+	 *
+	 * @return a Criteria for the given ShardedCriteria
+	 */
+	Criteria establishCriteria(ShardedCriteria shardedCriteria);
 
-    /**
-     * @see Criteria#list()
-     */
-    List<Object> list(CriteriaId criteriaId);
+	/**
+	 * @see Criteria#list()
+	 */
+	List<Object> list(CriteriaId criteriaId);
 
-    /**
-     * @see Criteria#uniqueResult()
-     */
-    Object uniqueResult(CriteriaId criteriaId);
+	/**
+	 * @see Criteria#uniqueResult()
+	 */
+	Object uniqueResult(CriteriaId criteriaId);
 
-    /**
-     * @return the ids of the virtual shards that are mapped to this physical shard.
-     *         The returned Set is unmodifiable.
-     */
-    Set<ShardId> getShardIds();
+	/**
+	 * @return the ids of the virtual shards that are mapped to this physical shard.
+	 * The returned Set is unmodifiable.
+	 */
+	Set<ShardId> getShardIds();
 
-    /**
-     * @param queryId the id of the Query
-     * @return the Query uniquely identified by the given id (unique to the Shard)
-     */
-    Query getQueryById(QueryId queryId);
+	/**
+	 * @param queryId the id of the Query
+	 *
+	 * @return the Query uniquely identified by the given id (unique to the Shard)
+	 */
+	Query getQueryById(QueryId queryId);
 
-    /**
-     * @param id    the id of the Query with which the event should be associated
-     * @param event the event to add
-     */
-    void addQueryEvent(QueryId id, QueryEvent event);
+	/**
+	 * @param id the id of the Query with which the event should be associated
+	 * @param event the event to add
+	 */
+	void addQueryEvent(QueryId id, QueryEvent event);
 
-    /**
-     * @param shardedQuery the ShardedQuery for which this Shard should
-     *                     create an actual {@link Query} object.
-     * @return a Query for the given ShardedQuery
-     */
-    Query establishQuery(ShardedQuery shardedQuery);
+	/**
+	 * @param shardedQuery the ShardedQuery for which this Shard should
+	 * create an actual {@link Query} object.
+	 *
+	 * @return a Query for the given ShardedQuery
+	 */
+	Query establishQuery(ShardedQuery shardedQuery);
 
-    /**
-     * @see Query#list()
-     */
-    List<Object> list(QueryId queryId);
+	/**
+	 * @see Query#list()
+	 */
+	List<Object> list(QueryId queryId);
 
-    /**
-     *
-     */
-    int executeUpdate(QueryId queryId);
+	/**
+	 *
+	 */
+	int executeUpdate(QueryId queryId);
 
-    /**
-     * @see Query#uniqueResult()
-     */
-    Object uniqueResult(QueryId queryId);
+	/**
+	 * @see Query#uniqueResult()
+	 */
+	Object uniqueResult(QueryId queryId);
 }

@@ -18,10 +18,10 @@
 
 package org.hibernate.shards.query;
 
+import java.io.Serializable;
+
 import org.hibernate.Query;
 import org.hibernate.shards.session.ShardedSessionException;
-
-import java.io.Serializable;
 
 /**
  * @author Maulik Shah
@@ -29,42 +29,43 @@ import java.io.Serializable;
 public class SetSerializableEvent implements QueryEvent {
 
 
-  private static enum CtorType {
-    POSITION_VAL,
-    NAME_VAL
-  }
+	private static enum CtorType {
+		POSITION_VAL,
+		NAME_VAL
+	}
 
-  private final CtorType ctorType;
-  private final int position;
-  private final Serializable val;
-  private final String name;
+	private final CtorType ctorType;
+	private final int position;
+	private final Serializable val;
+	private final String name;
 
-  private SetSerializableEvent(CtorType ctorType, int position, Serializable val, String name) {
-    this.ctorType = ctorType;
-    this.position = position;
-    this.val = val;
-    this.name = name;
-  }
+	private SetSerializableEvent(CtorType ctorType, int position, Serializable val, String name) {
+		this.ctorType = ctorType;
+		this.position = position;
+		this.val = val;
+		this.name = name;
+	}
 
-  public SetSerializableEvent(int position, Serializable val) {
-    this(CtorType.POSITION_VAL, position, val, null);
-  }
+	public SetSerializableEvent(int position, Serializable val) {
+		this( CtorType.POSITION_VAL, position, val, null );
+	}
 
-  public SetSerializableEvent(String name, Serializable val) {
-    this(CtorType.NAME_VAL, -1, val, name);
-  }
+	public SetSerializableEvent(String name, Serializable val) {
+		this( CtorType.NAME_VAL, -1, val, name );
+	}
 
-  public void onEvent(Query query) {
-    switch(ctorType) {
-      case POSITION_VAL:
-        query.setSerializable(position, val);
-        break;
-      case NAME_VAL:
-        query.setSerializable(name, val);
-        break;
-      default:
-        throw new ShardedSessionException(
-            "Unknown ctor type in SetSerializableEvent: " + ctorType);
-    }
-  }
+	public void onEvent(Query query) {
+		switch ( ctorType ) {
+			case POSITION_VAL:
+				query.setSerializable( position, val );
+				break;
+			case NAME_VAL:
+				query.setSerializable( name, val );
+				break;
+			default:
+				throw new ShardedSessionException(
+						"Unknown ctor type in SetSerializableEvent: " + ctorType
+				);
+		}
+	}
 }

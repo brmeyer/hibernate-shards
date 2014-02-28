@@ -18,18 +18,18 @@
 
 package org.hibernate.shards.strategy.resolution;
 
+import java.util.List;
+
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
-
-import java.util.List;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class ShardResolutionStrategyDefaultMock implements ShardResolutionStrategy {
 
-  public List<ShardId> selectShardIdsFromShardResolutionStrategyData(
-      ShardResolutionStrategyData shardResolutionStrategyData) {
-    throw new UnsupportedOperationException();
-  }
+	public List<ShardId> selectShardIdsFromShardResolutionStrategyData(
+			ShardResolutionStrategyData shardResolutionStrategyData) {
+		throw new UnsupportedOperationException();
+	}
 }

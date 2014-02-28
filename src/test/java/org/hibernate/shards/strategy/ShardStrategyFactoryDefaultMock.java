@@ -18,16 +18,16 @@
 
 package org.hibernate.shards.strategy;
 
-import org.hibernate.shards.ShardId;
-
 import java.util.List;
+
+import org.hibernate.shards.ShardId;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public class ShardStrategyFactoryDefaultMock implements ShardStrategyFactory {
 
-  public ShardStrategy newShardStrategy(List<ShardId> shardIds) {
-    throw new UnsupportedOperationException();
-  }
+	public ShardStrategy newShardStrategy(List<ShardId> shardIds) {
+		throw new UnsupportedOperationException();
+	}
 }

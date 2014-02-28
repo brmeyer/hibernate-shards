@@ -19,25 +19,26 @@
 package org.hibernate.shards.query;
 
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
 
 /**
  * @author Maulik Shah
  */
- public class SetTimeoutEventTest extends TestCase {
+public class SetTimeoutEventTest extends TestCase {
 
-   public void testSetTimeoutEventTimeout() {
-     SetTimeoutEvent event = new SetTimeoutEvent(-1);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setTimeout(int timeout) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetTimeoutEventTimeout() {
+		SetTimeoutEvent event = new SetTimeoutEvent( -1 );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setTimeout(int timeout) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

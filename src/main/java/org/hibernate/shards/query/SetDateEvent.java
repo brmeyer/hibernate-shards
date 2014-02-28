@@ -18,52 +18,53 @@
 
 package org.hibernate.shards.query;
 
+import java.util.Date;
+
 import org.hibernate.Query;
 import org.hibernate.shards.session.ShardedSessionException;
-
-import java.util.Date;
 
 /**
  * @author Maulik Shah
  */
 public class SetDateEvent implements QueryEvent {
 
-   private static enum CtorType {
-    POSITION_VAL,
-    NAME_VAL
-  }
+	private static enum CtorType {
+		POSITION_VAL,
+		NAME_VAL
+	}
 
-  private final CtorType ctorType;
-  private final int position;
-  private final Date val;
-  private final String name;
+	private final CtorType ctorType;
+	private final int position;
+	private final Date val;
+	private final String name;
 
-  private SetDateEvent(CtorType ctorType, int position, Date val, String name) {
-    this.ctorType = ctorType;
-    this.position = position;
-    this.val = val;
-    this.name = name;
-  }
+	private SetDateEvent(CtorType ctorType, int position, Date val, String name) {
+		this.ctorType = ctorType;
+		this.position = position;
+		this.val = val;
+		this.name = name;
+	}
 
-  public SetDateEvent(int position, Date val) {
-    this(CtorType.POSITION_VAL, position, val, null);
-  }
+	public SetDateEvent(int position, Date val) {
+		this( CtorType.POSITION_VAL, position, val, null );
+	}
 
-  public SetDateEvent(String name, Date val) {
-    this(CtorType.NAME_VAL, -1, val, name);
-  }
+	public SetDateEvent(String name, Date val) {
+		this( CtorType.NAME_VAL, -1, val, name );
+	}
 
-  public void onEvent(Query query) {
-    switch(ctorType) {
-      case POSITION_VAL:
-        query.setDate(position, val);
-        break;
-      case NAME_VAL:
-        query.setDate(name, val);
-        break;
-      default:
-        throw new ShardedSessionException(
-            "Unknown ctor type in SetDateEvent: " + ctorType);
-    }
-  }
+	public void onEvent(Query query) {
+		switch ( ctorType ) {
+			case POSITION_VAL:
+				query.setDate( position, val );
+				break;
+			case NAME_VAL:
+				query.setDate( name, val );
+				break;
+			default:
+				throw new ShardedSessionException(
+						"Unknown ctor type in SetDateEvent: " + ctorType
+				);
+		}
+	}
 }

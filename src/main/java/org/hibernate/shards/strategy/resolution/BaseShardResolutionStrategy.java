@@ -18,17 +18,17 @@
 
 package org.hibernate.shards.strategy.resolution;
 
+import java.util.List;
+
 import org.hibernate.shards.BaseHasShardIdList;
 import org.hibernate.shards.ShardId;
-
-import java.util.List;
 
 /**
  * @author maxr@google.com (Max Ross)
  */
 public abstract class BaseShardResolutionStrategy extends BaseHasShardIdList implements ShardResolutionStrategy {
 
-    public BaseShardResolutionStrategy(final List<ShardId> shardIds) {
-        super(shardIds);
-    }
+	public BaseShardResolutionStrategy(final List<ShardId> shardIds) {
+		super( shardIds );
+	}
 }

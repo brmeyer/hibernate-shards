@@ -18,42 +18,43 @@
 
 package org.hibernate.shards.query;
 
+import java.util.Date;
+
 import junit.framework.TestCase;
+
 import org.hibernate.Query;
 import org.hibernate.shards.defaultmock.QueryDefaultMock;
-
-import java.util.Date;
 
 /**
  * @author Maulik Shah
  */
 public class SetDateEventTest extends TestCase {
 
-   public void testSetDateEventPositionVal() {
-     SetDateEvent event = new SetDateEvent(-1, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setDate(int position, Date val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetDateEventPositionVal() {
+		SetDateEvent event = new SetDateEvent( -1, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setDate(int position, Date val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 
-   public void testSetDateEventNameVal() {
-     SetDateEvent event = new SetDateEvent(null, null);
-     final boolean[] called = {false};
-     Query query = new QueryDefaultMock() {
-       @Override
-       public Query setDate(String name, Date val) {
-         called[0] = true;
-         return null;
-       }
-     };
-     event.onEvent(query);
-     assertTrue(called[0]);
-   }
+	public void testSetDateEventNameVal() {
+		SetDateEvent event = new SetDateEvent( null, null );
+		final boolean[] called = {false};
+		Query query = new QueryDefaultMock() {
+			@Override
+			public Query setDate(String name, Date val) {
+				called[0] = true;
+				return null;
+			}
+		};
+		event.onEvent( query );
+		assertTrue( called[0] );
+	}
 }

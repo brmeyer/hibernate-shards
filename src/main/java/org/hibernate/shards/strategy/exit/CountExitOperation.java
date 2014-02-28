@@ -18,42 +18,42 @@
 
 package org.hibernate.shards.strategy.exit;
 
+import java.util.List;
+
+import org.jboss.logging.Logger;
+
 import org.hibernate.criterion.CountProjection;
 import org.hibernate.criterion.Projection;
 import org.hibernate.shards.util.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * @author Maulik Shah
  */
 public class CountExitOperation implements ProjectionExitOperation {
 
-    private final boolean distinct;
+	private final boolean distinct;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = Logger.getLogger( getClass() );
 
-    public CountExitOperation(final Projection projection) {
-        Preconditions.checkState(projection instanceof CountProjection);
+	public CountExitOperation(final Projection projection) {
+		Preconditions.checkState( projection instanceof CountProjection );
 
-        distinct = projection.toString().contains("distinct");
+		distinct = projection.toString().contains( "distinct" );
 
-        /**
-         * TODO(maulik) we need to figure out how to work with distinct
-         * the CountProjection will return a count that is distinct for a particular
-         * shard, however, without knowing which elements it has seen, we cannot
-         * aggregate the counts.
-         */
-        log.error("not ready to use!");
-        throw new UnsupportedOperationException();
-    }
+		/**
+		 * TODO(maulik) we need to figure out how to work with distinct
+		 * the CountProjection will return a count that is distinct for a particular
+		 * shard, however, without knowing which elements it has seen, we cannot
+		 * aggregate the counts.
+		 */
+		log.error( "not ready to use!" );
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public List<Object> apply(List<Object> results) {
-        // TODO(maulik) implement this
-        log.error("not ready to use!");
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public List<Object> apply(List<Object> results) {
+		// TODO(maulik) implement this
+		log.error( "not ready to use!" );
+		throw new UnsupportedOperationException();
+	}
 }

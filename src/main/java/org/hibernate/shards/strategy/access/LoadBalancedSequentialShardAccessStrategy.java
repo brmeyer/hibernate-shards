@@ -18,11 +18,11 @@
 
 package org.hibernate.shards.strategy.access;
 
-import org.hibernate.shards.Shard;
-import org.hibernate.shards.util.Iterables;
-
 import java.util.List;
 import java.util.Random;
+
+import org.hibernate.shards.Shard;
+import org.hibernate.shards.util.Iterables;
 
 /**
  * A SequentialShardAccessStrategy starts with the first Shard in the list
@@ -40,14 +40,14 @@ import java.util.Random;
  */
 public class LoadBalancedSequentialShardAccessStrategy extends SequentialShardAccessStrategy {
 
-    private final Random rand;
+	private final Random rand;
 
-    public LoadBalancedSequentialShardAccessStrategy() {
-        this.rand = new Random(System.currentTimeMillis());
-    }
+	public LoadBalancedSequentialShardAccessStrategy() {
+		this.rand = new Random( System.currentTimeMillis() );
+	}
 
-    @Override
-    protected Iterable<Shard> getNextOrderingOfShards(final List<Shard> shards) {
-        return Iterables.rotate(shards, rand.nextInt() % shards.size());
-    }
+	@Override
+	protected Iterable<Shard> getNextOrderingOfShards(final List<Shard> shards) {
+		return Iterables.rotate( shards, rand.nextInt() % shards.size() );
+	}
 }
