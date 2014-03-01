@@ -20,6 +20,7 @@ package org.hibernate.shards.test;
 
 import java.util.List;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.shards.engine.ShardedSessionFactoryImplementor;
 
@@ -39,5 +40,31 @@ public class ShardedConfigurationTest extends BaseShardFunctionalTestCase {
 		// has the number of session factories we expect
 		List<SessionFactory> sfList = ssf.getSessionFactories();
 		Assert.assertEquals( 3, sfList.size() );
+	}
+
+	@Test
+	public void simpleTest() {
+		Session s = openSession();
+		s.beginTransaction();
+		TestEntity entity = new TestEntity();
+		entity.setID( 1L );
+		entity.setDescription( "Description" );
+		entity.setName( "Name" );
+		s.save( entity );
+		s.getTransaction().commit();
+		s.close();
+
+		s = openSession();
+		s.beginTransaction();
+		entity = (TestEntity)s.get( TestEntity.class, 1L );
+		Assert.assertNotNull( entity );
+		Assert.assertEquals( 1L, entity.getID() );
+		Assert.assertEquals( "Description", entity.getDescription() );
+		Assert.assertEquals( "Name", entity.getName() );
+		s.getTransaction().commit();
+	}
+
+	public Class[] getAnnotatedClasses() {
+		return new Class[] {TestEntity.class};
 	}
 }

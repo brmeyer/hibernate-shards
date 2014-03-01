@@ -18,6 +18,8 @@
 
 package org.hibernate.shards;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +31,7 @@ import java.util.Set;
 import org.jboss.logging.Logger;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -36,6 +39,8 @@ import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.mapping.OneToOne;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
+import org.hibernate.metamodel.MetadataSources;
+import org.hibernate.metamodel.source.MetadataImplementor;
 import org.hibernate.shards.cfg.ShardConfiguration;
 import org.hibernate.shards.cfg.ShardedEnvironment;
 import org.hibernate.shards.session.ShardedSessionFactory;
@@ -70,8 +75,57 @@ public class ShardedConfiguration {
 	// maps physical shard ids to sets of virtual shard ids
 	private final Map<Integer, Set<ShardId>> shardToVirtualShardIdMap;
 
+	private final List<StandardServiceRegistry> serviceRegistries;
+	private final List<MetadataSources> metadataSourceses;
+	private final Map<StandardServiceRegistry, MetadataImplementor> metadatas;
+
 	// our lovely logger
 	private static final Logger LOG = Logger.getLogger( ShardedConfiguration.class );
+
+	public ShardedConfiguration(ShardStrategyFactory strategyFactory, List<StandardServiceRegistry> serviceRegistries) {
+		if ( strategyFactory == null ) {
+			String message = "Strategy factory can't be NULL";
+			LOG.info( message );
+			throw new IllegalArgumentException( message );
+		}
+		if ( serviceRegistries == null
+				|| serviceRegistries.isEmpty() ) {
+			String message = "Service registries can't be NULL or empty";
+			LOG.info( message );
+			throw new IllegalArgumentException( message );
+		}
+
+		//~~~~~~~~~~~~~~~~~~~~~~~~~
+		this.shardConfigs = Collections.emptyList();
+		this.prototypeConfiguration = new Configuration();
+		//~~~~~~~~~~~~~~~~~~~~~~~~~
+
+		this.shardStrategyFactory = strategyFactory;
+		this.shardToVirtualShardIdMap = Collections.emptyMap();
+		this.virtualShardToShardMap = Collections.emptyMap();
+		this.serviceRegistries = serviceRegistries;
+		this.metadatas = new HashMap<StandardServiceRegistry, MetadataImplementor>( serviceRegistries.size() );
+		this.metadataSourceses = new ArrayList<MetadataSources>( serviceRegistries.size() );
+		for ( int i = 0; i < serviceRegistries.size(); i++ ) {
+			StandardServiceRegistry serviceRegistry = serviceRegistries.get( i );
+			MetadataSources sources = new MetadataSources( serviceRegistry );
+			metadataSourceses.add( sources );
+			MetadataImplementor metadataImplementor = (MetadataImplementor) sources.buildMetadata();
+			this.metadatas.put( serviceRegistry, metadataImplementor );
+		}
+	}
+
+	public Collection<MetadataImplementor> shardsMetadata() {
+		return Collections.unmodifiableCollection( metadatas.values() );
+	}
+
+	public Collection<MetadataSources> shardsMetadataSources() {
+		return Collections.unmodifiableCollection( metadataSourceses );
+	}
+
+	public ShardedSessionFactory buildFactory() {
+		return null;
+	}
 
 	/**
 	 * Constructs a ShardedConfiguration.
@@ -139,6 +193,12 @@ public class ShardedConfiguration {
 			LOG.error( message );
 			throw new IllegalArgumentException( message );
 		}
+		//~~~~~~~~~ Just for back porting ~~~~~~~~~~
+		this.serviceRegistries = Collections.emptyList();
+		this.metadatas = Collections.emptyMap();
+		this.metadataSourceses = Collections.emptyList();
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 		this.prototypeConfiguration = prototypeConfiguration;
 		this.shardConfigs = shardConfigs;
 		this.shardStrategyFactory = shardStrategyFactory;
@@ -221,7 +281,7 @@ public class ShardedConfiguration {
 	 * @return the Set of mapped classes that don't support top level saves
 	 */
 	@SuppressWarnings("unchecked")
-	public static Set<Class<?>> determineClassesWithoutTopLevelSaveSupport(final Configuration prototypeConfig) {
+	static Set<Class<?>> determineClassesWithoutTopLevelSaveSupport(final Configuration prototypeConfig) {
 		final Set<Class<?>> classesWithoutTopLevelSaveSupport = new HashSet<Class<?>>();
 		for ( final Iterator<PersistentClass> pcIter = prototypeConfig.getClassMappings(); pcIter.hasNext(); ) {
 			final PersistentClass pc = pcIter.next();
@@ -242,7 +302,7 @@ public class ShardedConfiguration {
 	 * definitely can't be saved as top-level objects (not part of a cascade and
 	 * no properties from which the shard can be inferred)
 	 */
-	public static boolean doesNotSupportTopLevelSave(final Property property) {
+	static boolean doesNotSupportTopLevelSave(final Property property) {
 		return property.getValue() != null &&
 				OneToOne.class.isAssignableFrom( property.getValue().getClass() );
 	}

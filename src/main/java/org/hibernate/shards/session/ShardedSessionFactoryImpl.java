@@ -131,14 +131,11 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	private static final Logger LOG = Logger.getLogger( ShardedSessionFactoryImpl.class );
 
 	public ShardedSessionFactoryImpl(
-			final List<ShardConfiguration> shards,
+			final List<ShardId> shardIds,
 			final ShardStrategyFactory shardStrategyFactory,
 			final Set<Class<?>> classesWithoutTopLevelSaveSupport,
-			final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap) {
-		if( shards == null
-				|| shards.isEmpty() ) {
-			throw new IllegalStateException( "Shards can't be null or empty" );
-		}
+			final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap,
+			final boolean checkAllAssociatedObjectsForDifferentShards) {
 		if( sessionFactoryShardIdMap == null
 				|| sessionFactoryShardIdMap.isEmpty() ) {
 			throw new IllegalStateException( "Sharded Session Factory can't create without session factories" );
@@ -147,13 +144,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		this.fullSessionFactoryShardIdMap = sessionFactoryShardIdMap;
 		this.sessionFactories = new ArrayList<SessionFactoryImplementor>( sessionFactoryShardIdMap.keySet() );
 		this.classesWithoutTopLevelSaveSupport = classesWithoutTopLevelSaveSupport;
-		final List<ShardId> shardIds = new ArrayList<ShardId>( shards.size() );
-		boolean checkAllAssociatedObject = true;
-		for( ShardConfiguration shardConfiguration : shards ) {
-			shardIds.add( new ShardId( shardConfiguration.getShardId() ) );
-			checkAllAssociatedObject &= shardConfiguration.getCheckAllAssociatedObjectInShards();
-		}
-		this.checkAllAssociatedObjectsForDifferentShards = checkAllAssociatedObject;
+		this.checkAllAssociatedObjectsForDifferentShards = checkAllAssociatedObjectsForDifferentShards;
 		final Set<ShardId> uniqueShardIds = new HashSet<ShardId>();
 		SessionFactoryImplementor controlSessionFactoryToSet = null;
 		for ( final Map.Entry<SessionFactoryImplementor, Set<ShardId>> entry : sessionFactoryShardIdMap.entrySet() ) {

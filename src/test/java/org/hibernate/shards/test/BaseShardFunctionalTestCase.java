@@ -1,39 +1,51 @@
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * Copyright (c) 2014, Red Hat Inc. or third-party contributors as
+ * indicated by the @author tags or express copyright attribution
+ * statements applied by the authors.  All third-party contributions are
+ * distributed under license by Red Hat Inc.
+ *
+ * This copyrighted material is made available to anyone wishing to use, modify,
+ * copy, or redistribute it subject to the terms and conditions of the GNU
+ * Lesser General Public License, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this distribution; if not, write to:
+ * Free Software Foundation, Inc.
+ * 51 Franklin Street, Fifth Floor
+ * Boston, MA  02110-1301  USA
+ */
 package org.hibernate.shards.test;
 
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.hibernate.Interceptor;
-import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cache.spi.access.AccessType;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.engine.config.spi.ConfigurationService;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.metamodel.MetadataSources;
-import org.hibernate.metamodel.SessionFactoryBuilder;
 import org.hibernate.metamodel.binding.AbstractPluralAttributeBinding;
 import org.hibernate.metamodel.binding.AttributeBinding;
 import org.hibernate.metamodel.binding.Caching;
 import org.hibernate.metamodel.binding.EntityBinding;
 import org.hibernate.metamodel.source.MetadataImplementor;
-import org.hibernate.boot.registry.BootstrapServiceRegistry;
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.ShardedConfiguration;
-import org.hibernate.shards.cfg.ShardConfiguration;
-import org.hibernate.shards.cfg.ShardConfigurationImpl;
 import org.hibernate.shards.engine.ShardedSessionFactoryImplementor;
 import org.hibernate.shards.loadbalance.RoundRobinShardLoadBalancer;
 import org.hibernate.shards.session.ShardedSession;
-import org.hibernate.shards.session.ShardedSessionFactoryImpl;
 import org.hibernate.shards.strategy.ShardStrategy;
 import org.hibernate.shards.strategy.ShardStrategyFactory;
 import org.hibernate.shards.strategy.ShardStrategyImpl;
@@ -76,27 +88,21 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 	protected void buildShardedSessionFactory() {
 		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
 		String[] configurationFiles = getConfigurationFiles();
-		List<ShardConfiguration> shardConfigurations = new ArrayList<ShardConfiguration>();
-		Map<SessionFactoryImplementor, Set<ShardId>> sessionFactories = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
-		for( int i = 0; i < configurationFiles.length; i++ ) {
-			StandardServiceRegistry registry = builder.configure( configurationFiles[ i ] ).build();
-			MetadataImplementor metadata = buildMetadata( registry );
-			afterConstructAndConfigureMetadata( metadata );
-			final SessionFactoryBuilder sessionFactoryBuilder = metadata.getSessionFactoryBuilder();
-			SessionFactory sessionFactory = sessionFactoryBuilder.build();
-			afterSessionFactoryBuilt();
-			ShardConfiguration configuration = new ShardConfigurationImpl( registry.getService( ConfigurationService.class ) );
-			shardConfigurations.add( configuration );
-			sessionFactories.put( sessionFactory,  )
+		List<StandardServiceRegistry> registries = new ArrayList<StandardServiceRegistry>(configurationFiles.length);
+		for ( int i = 0; i < configurationFiles.length; i++ ) {
+			StandardServiceRegistry registry = builder.configure( configurationFiles[i] ).build();
+			registries.add( registry );
 		}
-		ssf = new ShardedSessionFactoryImpl(
-				shardConfigurations,
-				buildShardStrategyFactory(),
-				ShardedConfiguration.determineClassesWithoutTopLevelSaveSupport(
-						new Configuration().configure("hibernate0.cfg.xml") ),
-
-				);
-
+		ShardedConfiguration configuration = new ShardedConfiguration( buildShardStrategyFactory(), registries );
+		Collection<MetadataImplementor> metadatas = configuration.shardsMetadata();
+		for( MetadataImplementor metadata : metadatas) {
+			afterConstructAndConfigureMetadata( metadata );
+		}
+		Collection<MetadataSources> metadataSourceses = configuration.shardsMetadataSources();
+		for( MetadataSources metadataSources : metadataSourceses ) {
+			addMappings( metadataSources );
+		}
+		configuration.buildFactory();
 	}
 
 	@AfterClassOnce
@@ -124,17 +130,6 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 			}
 		};
 	}
-
-	protected void afterSessionFactoryBuilt() {
-	}
-
-	private MetadataImplementor buildMetadata( StandardServiceRegistry serviceRegistry ) {
-		assert BootstrapServiceRegistry.class.isInstance( serviceRegistry.getParentServiceRegistry() );
-		MetadataSources sources = new MetadataSources( serviceRegistry.getParentServiceRegistry() );
-		addMappings( sources );
-		return (MetadataImplementor) sources.getMetadataBuilder( serviceRegistry ).build();
-	}
-
 
 	protected void afterConstructAndConfigureMetadata(MetadataImplementor metadataImplementor) {
 		applyCacheSettings( metadataImplementor );

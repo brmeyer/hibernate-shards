@@ -24,6 +24,7 @@ package org.hibernate.shards.cfg;
  * @author maxr@google.com (Max Ross)
  * @author Aleksander Dukhno
  */
+@Deprecated
 public interface ShardConfiguration {
 
 	/**
