@@ -80,7 +80,8 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 	}
 
 	protected ShardedSession openSession() {
-		if ( session == null ) {
+		if ( session == null
+				|| !session.isOpen()) {
 			session = ssf.openSession();
 		}
 		return session;

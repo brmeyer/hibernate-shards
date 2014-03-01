@@ -13,6 +13,5 @@
         <property name="hibernate.shard.enable_cross_shard_relationship_checks">true</property>
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.hbm2ddl.auto">create-drop</property>
-        <mapping class="org.hibernate.shards.test.TestEntity"/>
     </session-factory>
 </hibernate-configuration>

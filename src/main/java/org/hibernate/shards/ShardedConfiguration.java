@@ -80,7 +80,7 @@ public class ShardedConfiguration {
 	private final Map<Integer, Set<ShardId>> shardToVirtualShardIdMap;
 
 	private final List<StandardServiceRegistry> serviceRegistries;
-	private List<MetadataSources> metadataSourceses;
+	private Map<StandardServiceRegistry, MetadataSources> metadataSourceses;
 	private final Map<StandardServiceRegistry, MetadataImplementor> metadatas;
 
 	// our lovely logger
@@ -109,11 +109,11 @@ public class ShardedConfiguration {
 		this.virtualShardToShardMap = Collections.emptyMap();
 		this.serviceRegistries = serviceRegistries;
 		this.metadatas = new HashMap<StandardServiceRegistry, MetadataImplementor>( serviceRegistries.size() );
-		this.metadataSourceses = new ArrayList<MetadataSources>( serviceRegistries.size() );
+		this.metadataSourceses = new HashMap<StandardServiceRegistry, MetadataSources>( serviceRegistries.size() );
 		for ( int i = 0; i < serviceRegistries.size(); i++ ) {
 			StandardServiceRegistry serviceRegistry = serviceRegistries.get( i );
 			MetadataSources sources = new MetadataSources( serviceRegistry );
-			metadataSourceses.add( sources );
+			metadataSourceses.put( serviceRegistry, sources );
 			MetadataImplementor metadataImplementor = (MetadataImplementor) sources.buildMetadata();
 			this.metadatas.put( serviceRegistry, metadataImplementor );
 		}
@@ -124,16 +124,20 @@ public class ShardedConfiguration {
 	}
 
 	public List<MetadataSources> shardsMetadataSources() {
-		return Collections.unmodifiableList( metadataSourceses );
+		List<MetadataSources> list = new ArrayList<MetadataSources>( metadataSourceses.values() );
+		return Collections.unmodifiableList( list );
 	}
 
 	//TODO temporary for testing ?
-	public void applyMappings(List<MetadataSources> metadataSourceses ) {
-		for( MetadataSources metadataSources : metadataSourceses ) {
-			StandardServiceRegistry serviceRegistry = (StandardServiceRegistry)metadataSources.getServiceRegistry();
-			this.metadatas.put( serviceRegistry, (MetadataImplementor)metadataSources.buildMetadata() );
+	public void applyMappings(List<MetadataSources> metadataSourceses) {
+		for ( MetadataSources metadataSources : metadataSourceses ) {
+			StandardServiceRegistry serviceRegistry = (StandardServiceRegistry) metadataSources.getServiceRegistry();
+			this.metadatas.put( serviceRegistry, (MetadataImplementor) metadataSources.buildMetadata() );
+			this.metadataSourceses.put(
+					(StandardServiceRegistry) metadataSources.getServiceRegistry(),
+					metadataSources
+			);
 		}
-		this.metadataSourceses = metadataSourceses;
 	}
 
 	public ShardedSessionFactory buildFactory() {
@@ -170,8 +174,17 @@ public class ShardedConfiguration {
 					null
 			);
 			Set<ShardId> virtualShardIds = Collections.singleton( new ShardId( shardID ) );
-			Metadata metadata = metadatas.get( serviceRegistry );
-			sessionFactories.put( (SessionFactoryImplementor) metadata.buildSessionFactory(), virtualShardIds );
+			Properties properties = new Properties();
+			properties.putAll( configurationService.getSettings() );
+			Configuration configuration = new Configuration().setProperties( properties );
+			MetadataSources metadataSources = metadataSourceses.get( serviceRegistry );
+			for( Class annotatedClass : metadataSources.getAnnotatedClasses()) {
+				configuration.addAnnotatedClass( annotatedClass );
+			}
+			sessionFactories.put(
+					(SessionFactoryImplementor) configuration.buildSessionFactory( serviceRegistry ),
+					virtualShardIds
+			);
 		}
 
 		return new ShardedSessionFactoryImpl(
@@ -251,7 +264,7 @@ public class ShardedConfiguration {
 		//~~~~~~~~~ Just for back porting ~~~~~~~~~~
 		this.serviceRegistries = Collections.emptyList();
 		this.metadatas = Collections.emptyMap();
-		this.metadataSourceses = Collections.emptyList();
+		this.metadataSourceses = Collections.emptyMap();
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		this.prototypeConfiguration = prototypeConfiguration;
