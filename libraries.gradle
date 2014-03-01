@@ -2,7 +2,7 @@
 // use.  In that respect it serves a role similar to <dependencyManagement> in Maven
 
 ext {
-    hibernateOrmVersion = '4.3.1.Final'
+    hibernateOrmVersion = '4.3.3.Final'
 
     slf4jVersion = '1.6.1'
     junitVersion = '4.11'
@@ -27,8 +27,6 @@ ext {
             jcl_api:            'commons-logging:commons-logging-api:99.0-does-not-exist',
             jcl:                'commons-logging:commons-logging:99.0-does-not-exist',
             //todo why does this library not coming with hibernate core?
-            commons_annotations: 'org.hibernate.common:hibernate-commons-annotations:4.0.4.Final',
-            jandex:         'org.jboss:jandex:1.1.0.Final',
             classmate:      'com.fasterxml:classmate:0.8.0',
             //default testing DB
             h2:              "com.h2database:h2:${h2Version}",

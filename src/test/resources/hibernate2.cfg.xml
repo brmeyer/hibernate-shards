@@ -9,8 +9,10 @@
         <property name="hibernate.connection.username">sa</property>
         <property name="hibernate.connection.password"></property>
         <property name="hibernate.session_factory_name_is_jndi">false</property>
-
         <property name="hibernate.connection.shard_id">2</property>
         <property name="hibernate.shard.enable_cross_shard_relationship_checks">true</property>
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.hbm2ddl.auto">create-drop</property>
+        <mapping class="org.hibernate.shards.test.TestEntity"/>
     </session-factory>
 </hibernate-configuration>

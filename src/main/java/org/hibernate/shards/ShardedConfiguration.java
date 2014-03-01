@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.jboss.logging.Logger;
@@ -34,14 +35,17 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.mapping.OneToOne;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
+import org.hibernate.metamodel.Metadata;
 import org.hibernate.metamodel.MetadataSources;
 import org.hibernate.metamodel.source.MetadataImplementor;
 import org.hibernate.shards.cfg.ShardConfiguration;
+import org.hibernate.shards.cfg.ShardedAvailableSettings;
 import org.hibernate.shards.cfg.ShardedEnvironment;
 import org.hibernate.shards.session.ShardedSessionFactory;
 import org.hibernate.shards.session.ShardedSessionFactoryImpl;
@@ -76,7 +80,7 @@ public class ShardedConfiguration {
 	private final Map<Integer, Set<ShardId>> shardToVirtualShardIdMap;
 
 	private final List<StandardServiceRegistry> serviceRegistries;
-	private final List<MetadataSources> metadataSourceses;
+	private List<MetadataSources> metadataSourceses;
 	private final Map<StandardServiceRegistry, MetadataImplementor> metadatas;
 
 	// our lovely logger
@@ -119,12 +123,63 @@ public class ShardedConfiguration {
 		return Collections.unmodifiableCollection( metadatas.values() );
 	}
 
-	public Collection<MetadataSources> shardsMetadataSources() {
-		return Collections.unmodifiableCollection( metadataSourceses );
+	public List<MetadataSources> shardsMetadataSources() {
+		return Collections.unmodifiableList( metadataSourceses );
+	}
+
+	//TODO temporary for testing ?
+	public void applyMappings(List<MetadataSources> metadataSourceses ) {
+		for( MetadataSources metadataSources : metadataSourceses ) {
+			StandardServiceRegistry serviceRegistry = (StandardServiceRegistry)metadataSources.getServiceRegistry();
+			this.metadatas.put( serviceRegistry, (MetadataImplementor)metadataSources.buildMetadata() );
+		}
+		this.metadataSourceses = metadataSourceses;
 	}
 
 	public ShardedSessionFactory buildFactory() {
-		return null;
+		final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactories = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
+		// since all configs get their mappings from the prototype config, and we
+		// get the set of classes that don't support top-level saves from the mappings,
+		// we can get the set from the prototype and then just reuse it.
+		final Set<Class<?>> classesWithoutTopLevelSaveSupport =
+				determineClassesWithoutTopLevelSaveSupport( prototypeConfiguration );
+
+		boolean doFullCrossShardRelationshipChecking = true;
+		for ( StandardServiceRegistry serviceRegistry : serviceRegistries ) {
+			ConfigurationService configurationService = serviceRegistry.getService( ConfigurationService.class );
+
+			doFullCrossShardRelationshipChecking &= configurationService.getSetting(
+					ShardedAvailableSettings.CHECK_ALL_ASSOCIATED_OBJECTS_FOR_DIFFERENT_SHARDS,
+					Boolean.class,
+					false
+			);
+			final Integer shardID = configurationService.getSetting(
+					ShardedAvailableSettings.SHARD_ID_PROPERTY,
+					new ConfigurationService.Converter<Integer>() {
+						@Override
+						public Integer convert(Object value) {
+							if ( value == null ) {
+								final String msg = "Attempt to build a ShardedSessionFactory using a "
+										+ "ShardConfiguration that has a null shard id.";
+								LOG.error( msg );
+								throw new NullPointerException( msg );
+							}
+							return Integer.parseInt( value.toString() );
+						}
+					},
+					null
+			);
+			Set<ShardId> virtualShardIds = Collections.singleton( new ShardId( shardID ) );
+			Metadata metadata = metadatas.get( serviceRegistry );
+			sessionFactories.put( (SessionFactoryImplementor) metadata.buildSessionFactory(), virtualShardIds );
+		}
+
+		return new ShardedSessionFactoryImpl(
+				sessionFactories,
+				shardStrategyFactory,
+				classesWithoutTopLevelSaveSupport,
+				doFullCrossShardRelationshipChecking
+		);
 	}
 
 	/**

@@ -29,11 +29,17 @@ import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.jboss.logging.Logger;
 
 import org.hibernate.Interceptor;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cache.spi.access.AccessType;
+import org.hibernate.cfg.Settings;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.metamodel.MetadataSources;
 import org.hibernate.metamodel.binding.AbstractPluralAttributeBinding;
@@ -88,21 +94,22 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 	protected void buildShardedSessionFactory() {
 		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
 		String[] configurationFiles = getConfigurationFiles();
-		List<StandardServiceRegistry> registries = new ArrayList<StandardServiceRegistry>(configurationFiles.length);
+		List<StandardServiceRegistry> registries = new ArrayList<StandardServiceRegistry>( configurationFiles.length );
 		for ( int i = 0; i < configurationFiles.length; i++ ) {
 			StandardServiceRegistry registry = builder.configure( configurationFiles[i] ).build();
 			registries.add( registry );
 		}
 		ShardedConfiguration configuration = new ShardedConfiguration( buildShardStrategyFactory(), registries );
 		Collection<MetadataImplementor> metadatas = configuration.shardsMetadata();
-		for( MetadataImplementor metadata : metadatas) {
+		for ( MetadataImplementor metadata : metadatas ) {
 			afterConstructAndConfigureMetadata( metadata );
 		}
-		Collection<MetadataSources> metadataSourceses = configuration.shardsMetadataSources();
-		for( MetadataSources metadataSources : metadataSourceses ) {
+		List<MetadataSources> metadataSourceses = configuration.shardsMetadataSources();
+		for ( MetadataSources metadataSources : metadataSourceses ) {
 			addMappings( metadataSources );
 		}
-		configuration.buildFactory();
+		configuration.applyMappings( metadataSourceses );
+		ssf = (ShardedSessionFactoryImplementor) configuration.buildFactory();
 	}
 
 	@AfterClassOnce

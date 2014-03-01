@@ -75,6 +75,7 @@ dependencies {
     testCompile( libraries.hibernate_testing )
     testCompile( libraries.hsqldb )
     testCompile( libraries.mockito )
+    testCompile( libraries.classmate )
     testRuntime( libraries.slf4j_api )
     testRuntime( libraries.slf4j_log4j12 )
     testRuntime( libraries.jcl_slf4j )

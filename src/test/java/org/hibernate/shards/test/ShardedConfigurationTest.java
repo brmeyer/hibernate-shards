@@ -15,7 +15,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
-
 package org.hibernate.shards.test;
 
 import java.util.List;
@@ -56,7 +55,7 @@ public class ShardedConfigurationTest extends BaseShardFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		entity = (TestEntity)s.get( TestEntity.class, 1L );
+		entity = (TestEntity) s.get( TestEntity.class, 1L );
 		Assert.assertNotNull( entity );
 		Assert.assertEquals( 1L, entity.getID() );
 		Assert.assertEquals( "Description", entity.getDescription() );
