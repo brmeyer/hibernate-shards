@@ -72,13 +72,13 @@ public abstract class BaseShardFunctionalTestCase extends BaseUnitTestCase {
 		if ( session != null
 				&& session.isOpen() ) {
 			session.close();
-			session = null;
 		}
+		session = null;
 		if ( ssf != null
 				&& !ssf.isClosed() ) {
 			ssf.close();
-			ssf = null;
 		}
+		ssf = null;
 	}
 
 	protected ShardStrategyFactory buildShardStrategyFactory() {
