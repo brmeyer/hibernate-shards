@@ -149,6 +149,7 @@ public class ShardedConfiguration {
 				determineClassesWithoutTopLevelSaveSupport( prototypeConfiguration );
 
 		boolean doFullCrossShardRelationshipChecking = true;
+		List<ShardId> shardIds = new ArrayList<ShardId>();
 		for ( StandardServiceRegistry serviceRegistry : serviceRegistries ) {
 			ConfigurationService configurationService = serviceRegistry.getService( ConfigurationService.class );
 
@@ -174,6 +175,7 @@ public class ShardedConfiguration {
 					null
 			);
 			Set<ShardId> virtualShardIds = Collections.singleton( new ShardId( shardID ) );
+			shardIds.addAll( virtualShardIds );
 			Properties properties = new Properties();
 			properties.putAll( configurationService.getSettings() );
 			Configuration configuration = new Configuration().setProperties( properties );
@@ -188,9 +190,10 @@ public class ShardedConfiguration {
 		}
 
 		return new ShardedSessionFactoryImpl(
-				sessionFactories,
+				shardIds,
 				shardStrategyFactory,
 				classesWithoutTopLevelSaveSupport,
+				sessionFactories,
 				doFullCrossShardRelationshipChecking
 		);
 	}
