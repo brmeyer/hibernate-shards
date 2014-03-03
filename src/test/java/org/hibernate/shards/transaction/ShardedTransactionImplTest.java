@@ -218,6 +218,8 @@ public class ShardedTransactionImplTest extends TestCase {
 		}
 	}
 
+	//Test fails because of o.h.engine.transaction.spi.AbstractTransactionImpl became invalid
+	//after committing or rolling back
 	public void testRollbackSimple() {
 		try {
 			sti.rollback();
@@ -255,6 +257,8 @@ public class ShardedTransactionImplTest extends TestCase {
 		}
 	}
 
+	//Test fails because of o.h.engine.transaction.spi.AbstractTransactionImpl became invalid
+	//after committing or rolling back
 	public void testRollbackWithOneFailedTransaction() {
 		sti.begin();
 		transaction1.fail = true;
