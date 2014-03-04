@@ -21,9 +21,8 @@ package org.hibernate.shards.session;
 import org.hibernate.Session;
 import org.hibernate.shards.ShardId;
 
-
 /**
- * The main runtime inteface between Java application and Hibernate Shards.<br>
+ * The main runtime interface between Java application and Hibernate Shards.<br>
  * ShardedSession represents a logical transaction that might be spanning
  * multiple shards. It follows the contract set by Session API, and adds some
  * shard-related methods.

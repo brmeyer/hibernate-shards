@@ -20,9 +20,11 @@ package org.hibernate.shards.session;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,11 +89,8 @@ import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
 import org.hibernate.shards.strategy.selection.ShardResolutionStrategyDataImpl;
 import org.hibernate.shards.transaction.ShardedTransactionImpl;
 import org.hibernate.shards.util.InterceptorList;
-import org.hibernate.shards.util.Iterables;
-import org.hibernate.shards.util.Lists;
 import org.hibernate.shards.util.Pair;
 import org.hibernate.shards.util.Preconditions;
-import org.hibernate.shards.util.Sets;
 import org.hibernate.stat.SessionStatistics;
 import org.hibernate.type.Type;
 
@@ -204,7 +203,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 			final ShardIdResolver shardIdResolver,
 			final /*@Nullable*/ Interceptor interceptor) {
 
-		final List<Shard> shardList = Lists.newArrayList();
+		final List<Shard> shardList = new ArrayList<Shard>();
 		for ( final Map.Entry<SessionFactoryImplementor, Set<ShardId>> entry : sessionFactoryShardIdMap.entrySet() ) {
 			final Pair<InterceptorList, SetSessionOnRequiresSessionEvent> pair = buildInterceptorList(
 					interceptor,
@@ -237,11 +236,8 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 			final boolean checkAllAssociatedObjectsForDifferentShards) {
 
 		// everybody gets a ShardAware interceptor
-		final List<Interceptor> interceptorList = Lists.<Interceptor>newArrayList(
-				new ShardAwareInterceptor(
-						shardIdResolver
-				)
-		);
+		final List<Interceptor> interceptorList = new ArrayList<Interceptor> ();
+		interceptorList.add( new ShardAwareInterceptor( shardIdResolver ) );
 		if ( checkAllAssociatedObjectsForDifferentShards ) {
 			// cross shard association checks during updates are handled using interceptors
 			final CrossShardRelationshipDetectingInterceptor csrdi =
@@ -276,11 +272,11 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 	}
 
 	private List<Shard> shardIdListToShardList(final List<ShardId> shardIds) {
-		final Set<Shard> shards = Sets.newHashSet();
+		final Set<Shard> shards = new HashSet<Shard>();
 		for ( final ShardId shardId : shardIds ) {
 			shards.add( shardIdsToShards.get( shardId ) );
 		}
-		return Lists.newArrayList( shards );
+		return new ArrayList<Shard>( shards );
 	}
 
 	@Override
@@ -441,7 +437,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 				}
 				catch (Throwable t) {
 					if ( thrown == null ) {
-						thrown = Lists.newArrayList();
+						thrown = new ArrayList<Throwable>();
 					}
 					thrown.add( t );
 					// we're going to try and close everything that was
@@ -717,7 +713,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		}
 		Preconditions.checkNotNull( shardId );
 		setCurrentSubgraphShardId( shardId );
-		LOG.debug( String.format( "Saving object of type %s to shard %s", object.getClass(), shardId ) );
+		LOG.debugf( "Saving object of type %s to shard %s", object.getClass(), shardId );
 		return shardIdsToShards.get( shardId ).establishSession().save( entityName, object );
 	}
 
@@ -745,13 +741,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		if ( lockedShard ) {
 			lockedShardId = shardId;
 		}
-		LOG.debug(
-				String.format(
-						"Selected shard %d for object of type %s",
-						shardId.getId(),
-						obj.getClass().getName()
-				)
-		);
+		LOG.debugf( "Selected shard %d for object of type %s", shardId.getId(), obj.getClass().getName() );
 		return shardId;
 	}
 
@@ -783,7 +773,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		Type[] types = cmd.getPropertyTypes();
 		final Object[] values = cmd.getPropertyValues( obj );
 		ShardId shardId = null;
-		List<Collection<Object>> collections = null;
+		Collection<Object> collections = null;
 		for ( final Pair<Type, Object> pair : CrossShardRelationshipDetectingInterceptor.buildListOfAssociations(
 				types,
 				values
@@ -796,11 +786,11 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 				 * quickly.
 				 */
 				if ( collections == null ) {
-					collections = Lists.newArrayList();
+					collections = new ArrayList<Object>();
 				}
 				@SuppressWarnings("unchecked")
 				Collection<Object> coll = (Collection<Object>) pair.getSecond();
-				collections.add( coll );
+				collections.addAll( coll );
 			}
 			else {
 				shardId = checkForConflictingShardId( shardId, obj.getClass(), pair.getSecond() );
@@ -814,7 +804,7 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 			}
 		}
 		if ( collections != null ) {
-			for ( final Object collEntry : Iterables.concat( collections ) ) {
+			for ( final Object collEntry : collections ) {
 				shardId = checkForConflictingShardId( shardId, obj.getClass(), collEntry );
 				if ( shardId != null && !checkAllAssociatedObjectsForDifferentShards ) {
 					/**
@@ -830,7 +820,8 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 
 	ShardId checkForConflictingShardId(
 			ShardId existingShardId,
-			final Class<?> newObjectClass, final Object associatedObject) {
+			final Class<?> newObjectClass,
+			final Object associatedObject) {
 
 		final ShardId localShardId = getShardIdForObject( associatedObject );
 		if ( localShardId != null ) {
@@ -923,9 +914,11 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 
 	Serializable extractId(final Object object) {
 		final ClassMetadata cmd = shardedSessionFactory.getClassMetadata( object.getClass() );
-		Preconditions.checkState( cmd != null );
-		// I'm just guessing about the EntityMode
-		return cmd.getIdentifier( object, (SessionImplementor) getSomeSession() );
+		if ( cmd != null ) {
+			// I'm just guessing about the EntityMode
+			return cmd.getIdentifier( object, (SessionImplementor) getSomeSession() );
+		}
+		throw new IllegalStateException( "Class metadata is NULL" );
 	}
 
 	private static final UpdateOperation SIMPLE_UPDATE_OPERATION = new UpdateOperation() {
@@ -1062,9 +1055,11 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 		if ( shardId == null ) {
 			shardId = selectShardIdForNewObject( object );
 		}
-		Preconditions.checkNotNull( shardId );
+		if ( shardId == null ) {
+			throw new IllegalStateException( "ShardId can't be NULL" );
+		}
 		setCurrentSubgraphShardId( shardId );
-		LOG.debug( String.format( "Persisting object of type %s to shard %s", object.getClass(), shardId ) );
+		LOG.debugf( "Persisting object of type %s to shard %s", object.getClass(), shardId );
 		shardIdsToShards.get( shardId ).establishSession().persist( entityName, object );
 	}
 
@@ -1586,24 +1581,6 @@ public class ShardedSessionImpl implements ShardedSession, ShardedSessionImpleme
 
 	public boolean getCheckAllAssociatedObjectsForDifferentShards() {
 		return checkAllAssociatedObjectsForDifferentShards;
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			if ( !closed ) {
-				LOG.warn( "ShardedSessionImpl is being garbage collected but it was never properly closed." );
-				try {
-					close();
-				}
-				catch (Exception e) {
-					LOG.warn( "Caught exception trying to close.", e );
-				}
-			}
-		}
-		finally {
-			super.finalize();
-		}
 	}
 
 	public static ShardId getCurrentSubgraphShardId() {

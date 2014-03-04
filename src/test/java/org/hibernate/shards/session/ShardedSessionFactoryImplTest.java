@@ -312,64 +312,6 @@ public class ShardedSessionFactoryImplTest extends TestCase {
 		assertNotNull( ssf.getStatistics() );
 	}
 
-	public void testFinalizeOnOpenSession() throws Throwable {
-
-		final boolean[] closeCalled = {false};
-
-		ShardStrategyFactory shardStrategyFactory = buildStrategyFactoryDefaultMock();
-		Map<SessionFactoryImplementor, Set<ShardId>> sfMap = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
-		sfMap.put( sf, Sets.newHashSet( shardId ) );
-
-		ShardedSessionFactoryImpl ssf =
-				new ShardedSessionFactoryImpl(
-						sfMap,
-						shardStrategyFactory,
-						Collections.<Class<?>>emptySet(),
-						false
-				) {
-					@Override
-					public void close() throws HibernateException {
-						closeCalled[0] = true;
-						super.close();
-					}
-
-					@Override
-					public boolean isClosed() {
-						return false;
-					}
-				};
-		ssf.finalize();
-		assertTrue( closeCalled[0] );
-	}
-
-	public void testFinalizeOnClosedSession() throws Throwable {
-		final boolean[] closeCalled = {false};
-
-		ShardStrategyFactory shardStrategyFactory = buildStrategyFactoryDefaultMock();
-		Map<SessionFactoryImplementor, Set<ShardId>> sfMap = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
-		sfMap.put( sf, Sets.newHashSet( shardId ) );
-		ShardedSessionFactoryImpl ssf =
-				new ShardedSessionFactoryImpl(
-						sfMap,
-						shardStrategyFactory,
-						Collections.<Class<?>>emptySet(),
-						false
-				) {
-					@Override
-					public void close() throws HibernateException {
-						closeCalled[0] = true;
-						super.close();
-					}
-
-					@Override
-					public boolean isClosed() {
-						return true;
-					}
-				};
-		ssf.finalize();
-		assertFalse( closeCalled[0] );
-	}
-
 	public void testFailsWhenMultipleSessionFactoriesHaveSameShardId() {
 		Map<SessionFactoryImplementor, Set<ShardId>> sfMap = new HashMap<SessionFactoryImplementor, Set<ShardId>>();
 		Set<Class<?>> crsl = Collections.emptySet();

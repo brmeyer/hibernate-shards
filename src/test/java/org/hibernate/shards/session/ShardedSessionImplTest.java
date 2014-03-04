@@ -580,35 +580,6 @@ public class ShardedSessionImplTest extends TestCase {
 		);
 	}
 
-	public void testFinalizeOnOpenSession() throws Throwable {
-		final boolean[] closeCalled = {false};
-		ShardedSessionImpl ssi = new MyShardedSessionImpl() {
-			@Override
-			public Connection close() throws HibernateException {
-				closeCalled[0] = true;
-				return super.close();
-			}
-		};
-		ssi.finalize();
-		assertTrue( closeCalled[0] );
-	}
-
-	public void testFinalizeOnClosedSession() throws Throwable {
-		final boolean[] closeCalled = {false};
-		ShardedSessionImpl ssi = new MyShardedSessionImpl() {
-			@Override
-			public Connection close() throws HibernateException {
-				closeCalled[0] = true;
-				return super.close();
-			}
-		};
-		ssi.close();
-		assertTrue( closeCalled[0] );
-		closeCalled[0] = false;
-		ssi.finalize();
-		assertFalse( closeCalled[0] );
-	}
-
 	public void testBuildInterceptorList_NoInterceptorProvided_CrossShardDisabled() {
 		Pair<InterceptorList, SetSessionOnRequiresSessionEvent> result =
 				ShardedSessionImpl.buildInterceptorList( null, new ShardIdResolverDefaultMock(), false );

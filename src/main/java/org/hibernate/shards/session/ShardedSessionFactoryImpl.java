@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -76,7 +77,6 @@ import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hibernate.shards.ShardId;
-import org.hibernate.shards.cfg.ShardConfiguration;
 import org.hibernate.shards.engine.ShardedSessionFactoryImplementor;
 import org.hibernate.shards.id.GeneratorRequiringControlSessionProvider;
 import org.hibernate.shards.strategy.ShardStrategy;
@@ -136,7 +136,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 			final Set<Class<?>> classesWithoutTopLevelSaveSupport,
 			final Map<SessionFactoryImplementor, Set<ShardId>> sessionFactoryShardIdMap,
 			final boolean checkAllAssociatedObjectsForDifferentShards) {
-		if( sessionFactoryShardIdMap == null
+		if ( sessionFactoryShardIdMap == null
 				|| sessionFactoryShardIdMap.isEmpty() ) {
 			throw new IllegalStateException( "Sharded Session Factory can't create without session factories" );
 		}
@@ -149,10 +149,18 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		SessionFactoryImplementor controlSessionFactoryToSet = null;
 		for ( final Map.Entry<SessionFactoryImplementor, Set<ShardId>> entry : sessionFactoryShardIdMap.entrySet() ) {
 			final SessionFactoryImplementor implementor = entry.getKey();
-			Preconditions.checkNotNull( implementor );
+			if ( implementor == null ) {
+				String message = "One of the session factories can't be NULL";
+				LOG.info( message );
+				throw new IllegalStateException( message );
+			}
 			final Set<ShardId> shardIdSet = entry.getValue();
-			Preconditions.checkNotNull( shardIdSet );
-			Preconditions.checkArgument( !shardIdSet.isEmpty() );
+			if ( shardIdSet == null
+					|| shardIdSet.isEmpty() ) {
+				String message = "Shards list of one of the session factories is NULL or empty";
+				LOG.info( message );
+				throw new IllegalStateException( message );
+			}
 			for ( final ShardId shardId : shardIdSet ) {
 				// TODO(tomislav): we should change it so we specify control shard in configuration
 				if ( shardId.getId() == CONTROL_SHARD_ID ) {
@@ -168,7 +176,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 				}
 				if ( shardIds.contains( shardId ) ) {
 					if ( !this.sessionFactoryShardIdMap.containsKey( implementor ) ) {
-						this.sessionFactoryShardIdMap.put( implementor, Sets.<ShardId>newHashSet() );
+						this.sessionFactoryShardIdMap.put( implementor, new HashSet<ShardId>() );
 					}
 					this.sessionFactoryShardIdMap.get( implementor ).add( shardId );
 				}
@@ -177,7 +185,11 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		// make sure someone didn't associate a session factory with a shard id
 		// that isn't in the full list of shards
 		for ( ShardId shardId : shardIds ) {
-			Preconditions.checkState( uniqueShardIds.contains( shardId ) );
+			if ( !uniqueShardIds.contains( shardId ) ) {
+				String message = "Find shard which is not in full shards list";
+				LOG.info( message );
+				throw new IllegalStateException( message );
+			}
 		}
 		this.shardStrategy = shardStrategyFactory.newShardStrategy( shardIds );
 		controlSessionFactory = controlSessionFactoryToSet;
@@ -293,14 +305,19 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	 * {@link GeneratorRequiringControlSessionProvider} interface
 	 */
 	private void setupIdGenerators() {
-		for ( SessionFactoryImplementor sfi : sessionFactories ) {
-			for ( Object obj : sfi.getAllClassMetadata().values() ) {
-				ClassMetadata cmd = (ClassMetadata) obj;
-				EntityPersister ep = sfi.getEntityPersister( cmd.getEntityName() );
-				if ( ep.getIdentifierGenerator() instanceof GeneratorRequiringControlSessionProvider ) {
-					((GeneratorRequiringControlSessionProvider) ep.getIdentifierGenerator()).setControlSessionProvider(
-							this
-					);
+		for ( int i = 0; i < sessionFactories.size(); i++ ) {
+			SessionFactoryImplementor sessionFactory = sessionFactories.get( i );
+			Iterator<ClassMetadata> classMetadataIterator = sessionFactory
+					.getAllClassMetadata()
+					.values()
+					.iterator();
+			while ( classMetadataIterator.hasNext() ) {
+				ClassMetadata classMetadata = classMetadataIterator.next();
+				EntityPersister persister = sessionFactory.getEntityPersister( classMetadata.getEntityName() );
+				if ( persister.getIdentifierGenerator() instanceof GeneratorRequiringControlSessionProvider ) {
+					GeneratorRequiringControlSessionProvider provider =
+							(GeneratorRequiringControlSessionProvider) persister.getIdentifierGenerator();
+					provider.setControlSessionProvider( this );
 				}
 			}
 		}
@@ -310,19 +327,6 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	public Map<SessionFactoryImplementor, Set<ShardId>> getSessionFactoryShardIdMap() {
 		return sessionFactoryShardIdMap;
 	}
-
-	/**
-	 * Unsupported.  This is a technical decision.  We would need a
-	 * ShardedConnection in order to make this work, but since this method is
-	 * exposed on the public api we can't force clients to provide it.  And
-	 * at any rate, exposing a ShardedConnection somewhat defeats the purpose
-	 * of tucking away all the sharding intelligence.
-	 */
-//    @Override
-//    public Session openSession(final Connection connection) {
-//        throw new UnsupportedOperationException(
-//                "Cannot open a sharded session with a user provided connection.");
-//    }
 
 	/**
 	 * Warning: this interceptor will be shared across all shards, so be very
@@ -563,9 +567,13 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 
 	@Override
 	public SessionImplementor openControlSession() {
-		Preconditions.checkState( controlSessionFactory != null );
-		Session session = controlSessionFactory.openSession();
-		return (SessionImplementor) session;
+		if ( controlSessionFactory != null ) {
+			Session session = controlSessionFactory.openSession();
+			return (SessionImplementor) session;
+		}
+		String message = "Session factory with shard id = 0 doesn't exist";
+		LOG.info( message );
+		throw new IllegalStateException( message );
 	}
 
 	@Override
@@ -605,25 +613,6 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 				classesWithoutTopLevelSaveSupport,
 				checkAllAssociatedObjectsForDifferentShards
 		);
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			// try to be helpful to apps that don't clean up properly
-			if ( !isClosed() ) {
-				LOG.warn( "ShardedSessionFactoryImpl is being garbage collected but it was never properly closed." );
-				try {
-					close();
-				}
-				catch (Exception e) {
-					LOG.warn( "Caught exception trying to close.", e );
-				}
-			}
-		}
-		finally {
-			super.finalize();
-		}
 	}
 
 	@Override
@@ -690,6 +679,7 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 	}
 
 	@Override
+	@Deprecated
 	public ConnectionProvider getConnectionProvider() {
 		// assumption is that all session factories are configured the same way,
 		// so it doesn't matter which session factory answers this question
@@ -709,13 +699,6 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		// so it doesn't matter which session factory answers this question
 		return getAnyFactory().getImportedClassName( name );
 	}
-
-//    @Override
-//    public TransactionManager getTransactionManager() {
-//        // assumption is that all session factories are configured the same way,
-//        // so it doesn't matter which session factory answers this question
-//        return getAnyFactory().getTransactionManager();
-//    }
 
 	@Override
 	public QueryCache getQueryCache() {
@@ -799,17 +782,6 @@ public class ShardedSessionFactoryImpl implements ShardedSessionFactoryImplement
 		throw new UnsupportedOperationException();
 	}
 
-	/**
-	 * Unsupported.  This is a technical decision.  See {@code ShardedSessionFactoryImpl#openSession(Connection)}
-	 * for an explanation.
-	 */
-//    @Override
-//    public Session openSession(final Connection connection,
-//                               final boolean flushBeforeCompletionEnabled,
-//                               final boolean autoCloseSessionEnabled,
-//                               final ConnectionReleaseMode connectionReleaseMode) throws HibernateException {
-//        throw new UnsupportedOperationException();
-//    }
 	@Override
 	public Set<String> getCollectionRolesByEntityParticipant(final String entityName) {
 		// assumption is that all session factories are configured the same way,
